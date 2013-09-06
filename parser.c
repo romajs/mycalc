@@ -6,7 +6,7 @@
  *
  * EBNF:
  *
- * expr -> term { [+|-] term }
+ * expr -> [-] term { [+|-] term }
  *
  *
  *
@@ -18,15 +18,27 @@
  */
 void expr(void)
 {
-	if(lookahead=='-'){
-		match('-');
-	}
+  int signal = 0;
+  int lastop = 0;
+  if(lookahead=='-'){
+    /*SA 1*/signal = 1;/**/
+    match('-');
+  }
 init:
-	term();
-	if(lookahead == '+' || lookahead == '-') {
-		match(lookahead);
-		goto init;
-	}
+  term();
+  /*SA 2*/if(signal){
+    fprintf(object," +/- ");
+    signal = 0;
+  }/**/
+  /*SA 3*/if(lastop){
+    fprintf(object," %c ", lastop);
+    lastop = 0;
+  }/**/
+  if(lookahead == '+' || lookahead == '-') {
+    lastop = lookahead;
+    match(lookahead);
+    goto init;
+  }
 }
 /*
  * term -> fact { [*|/] fact }
@@ -39,12 +51,18 @@ init:
  */
 void term(void)
 {
+  int lastop = 0;
 init:
-	fact();
-	if(lookahead == '*' || lookahead == '/') {
-		match(lookahead);
-		goto init;
-	}
+  fact();
+  /*SA 3*/if(lastop){
+    fprintf(object," %c ", lastop);
+    lastop = 0;
+  }/**/
+  if(lookahead == '*' || lookahead == '/') {
+    lastop = lookahead;
+    match(lookahead);
+    goto init;
+  }
 }
 /*
  * fact -> ID
@@ -54,12 +72,17 @@ init:
  */
 void fact(void)
 {
-	switch(lookahead){
-	case ID: case NUM:
-		match(lookahead);
-		break;
-	default:
-		match('('); expr(); match(')');
-	}
+  switch(lookahead){
+    case ID:
+      fprintf(object," ID ");
+      match(ID);
+      break;
+    case NUM:
+      fprintf(object," NUM ");
+      match(NUM);
+      break;
+    default:
+      match('('); expr(); match(')');
+  }
 }
 

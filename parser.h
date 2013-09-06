@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <mytype.h>
 #include <tokens.h>
 
@@ -40,3 +41,4 @@ extern token_t lookahead;
 
 extern void match(token_t);
 
+extern FILE *object;
