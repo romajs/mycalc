@@ -37,8 +37,10 @@ void term(void);
  */
 void fact(void);
 
-extern token_t lookahead;
-
 extern void match(token_t);
 
 extern FILE *object;
+
+extern token_t lookahead;
+
+extern char lexeme[];

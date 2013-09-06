@@ -74,11 +74,11 @@ void fact(void)
 {
   switch(lookahead){
     case ID:
-      fprintf(object," ID ");
+      fprintf(object," %s ", lexeme);
       match(ID);
       break;
     case NUM:
-      fprintf(object," NUM ");
+      fprintf(object," %s ", lexeme);
       match(NUM);
       break;
     default:

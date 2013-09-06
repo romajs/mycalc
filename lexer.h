@@ -7,3 +7,4 @@
 
 extern FILE *source;
 extern token_t lookahead;
+extern char lexeme[];
