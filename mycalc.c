@@ -8,17 +8,19 @@ char lexeme[MAX_ID_LEN];
 
 main(int argc, char *argv[])
 {
-	source = stdin;
-        
-        object = stdout;
+	while(1) {
+		fflush(stdin);
+		fprintf(stdout,"> ");
+		
+		source = stdin;        
+        object = stdout;	
+		/* get the first token to begin the parsing */
+		lookahead = gettoken(source);	
 
-	/* get the first token to begin the parsing */
-	lookahead = gettoken(source);
-
-	/* call the grammar initial symbol */
-	expr();
-        
-        fprintf(stdout,"\n");
-
+		/* call the grammar initial symbol */
+		expr();		
+		match(10);
+		fprintf(stdout,"\n\n");	
+	}
 	return 0;
 }

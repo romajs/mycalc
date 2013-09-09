@@ -7,6 +7,15 @@ void skipspaces(FILE *tape)
   ungetc(head, tape);
 }
 
+token_t isEOF(FILE *tape)
+{
+	token_t head;
+	if((head=getc(tape))== 10) {
+		return head;
+	}
+	ungetc(head, tape); return 0;
+}
+
 token_t isID(FILE *tape)
 {
   token_t head;
@@ -52,13 +61,15 @@ token_t gettoken(FILE *tape)
 {
   token_t token;
   
+  if(token = isEOF(tape)) return token;
+  
   skipspaces(tape);
   
   if (token = isID(tape)) return token;
   
   if (token = isNUM(tape)) return token;
   
-  lexeme[1] = 0;
+  lexeme[1] = 0;  
   return lexeme[0] = getc(tape);
 }
 /**************************************************************************
@@ -67,8 +78,10 @@ token_t gettoken(FILE *tape)
 
 void match(token_t predicted)
 {
+  //fprintf(stdout, "\nlookahead: %d | predicted: %d\n", lookahead, predicted);
   if(lookahead == predicted) {
-    lookahead = gettoken(source);
+	if(lookahead != 10)
+		lookahead = gettoken(source);
   }else{
     fprintf(stderr,"token mismatch\nexiting with error\n");
     exit(-666);
