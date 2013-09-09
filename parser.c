@@ -82,8 +82,11 @@ void fact(void)
       fprintf(object," %s ", lexeme);
       match(NUM);
       break;
+	case '(':
+	  match('('); expr(); match(')');
+	  break;
     default:
-      match('('); expr(); match(')');
+      break;
   }
 }
 

@@ -83,7 +83,9 @@ void match(token_t predicted)
 	if(lookahead != 10)
 		lookahead = gettoken(source);
   }else{
-    fprintf(stderr,"token mismatch\nexiting with error\n");
-    exit(-666);
+    fprintf(stderr,"token mismatch\n");
+	int c;
+	while((c=getc(source))!='\n' && c != EOF);
+    //exit(-666);
   }
 }
