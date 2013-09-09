@@ -76,16 +76,20 @@ token_t gettoken(FILE *tape)
  * parser-to-lexer interface
  */
 
-void match(token_t predicted)
+match(token_t predicted)
 {
   //fprintf(stdout, "\nlookahead: %d | predicted: %d\n", lookahead, predicted);
   if(lookahead == predicted) {
-	if(lookahead != 10)
+	if(lookahead != 10) {
 		lookahead = gettoken(source);
+		return 1;
+	}
   }else{
     fprintf(stderr,"token mismatch\n");
-	int c;
-	while((c=getc(source))!='\n' && c != EOF);
+	//ungetc(lookahead, source);
+	//int c;
+	//while((c=getc(source))!='\n' && c != EOF);
     //exit(-666);
   }
+	return 0;
 }

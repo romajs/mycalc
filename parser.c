@@ -19,25 +19,27 @@
  */
 void expr(void)
 {
+  
   int signal = 0;
   int lastop = 0;
   if(lookahead=='-'){
     /*SA 1*/signal = 1;/**/
     match('-');
   }
-init:
+init:	
   term();
   /*SA 2*/if(signal){
     fprintf(object," +/- ");
     signal = 0;
   }/**/
   /*SA 3*/if(lastop){
+    T_lvl-=2;
     fprintf(object," %c ", lastop);
     lastop = 0;
   }/**/
   if(lookahead == '+' || lookahead == '-') {
     lastop = lookahead;
-    match(lookahead);
+    match(lookahead);  
     goto init;
   }
 }
@@ -52,10 +54,14 @@ init:
  */
 void term(void)
 {
+
+
+  T_lvl++;
   int lastop = 0;
-init:
+init:	
   fact();
   /*SA 3*/if(lastop){
+    T_lvl--;
     fprintf(object," %c ", lastop);
     lastop = 0;
   }/**/
@@ -73,19 +79,20 @@ init:
  */
 void fact(void)
 {
+  F_lvl++;
   switch(lookahead){
     case ID:
       fprintf(object," %s ", lexeme);
-      match(ID);
+      if(match(ID)) F_lvl--;	
       break;
     case NUM:
       fprintf(object," %s ", lexeme);
-      match(NUM);
+      if(match(NUM)) F_lvl--;	
       break;
-	case '(':
-	  match('('); expr(); match(')');
-	  break;
     default:
+      if(match('(')) E_lvl++;
+      expr();
+      if(match(')')) { E_lvl--; F_lvl--; }
       break;
   }
 }

@@ -37,7 +37,7 @@ void term(void);
  */
 void fact(void);
 
-extern void match(token_t);
+extern match(token_t);
 
 extern FILE *object;
 
