@@ -8,6 +8,8 @@ extern FILE *object;
 
 extern FILE *source;
 
+extern int error;
+
 extern token_t lookahead;
 
 extern token_t gettoken(FILE *);

@@ -8,45 +8,27 @@ test(const char* expression, double expected) {
    source = fopen("test.txt", "w+");
    fprintf(source, "%s\n", expression);
    rewind(source);
-      
-   pid_t child;
-   int status = -1; 
-   
-   // copiado de 'mycalc.c' e adaptado
-   if(!(child = fork())) { // inicia novo processo
-      //fprintf(object, "child: %d\n", child);	
-        
-      
-      /* get the first token to begin the parsing */
-      lookahead = gettoken(source);
-      
-      /* call the grammar initial symbol */	
-      double value = 0;
-      value = expr();
-      fprintf(object, " -> Found = %.2f\n", value);
-      
-      if(value == expected) {
-         exit(OK);
-      } else {
-         exit(FAIL);
-      }
-   } else if (child == -1) {
-      fprintf(object, "fork error.");
-      exit(EXIT_FAILURE);
-   } else {			
-      //fprintf(object, "waiting for expr...\n");
-      waitpid(child, &status, WUNTRACED);	// aguarda o filho terminar	
-   }	 
 
- 
-   if(WEXITSTATUS(status) == OK) {
-      done++;
-      fprintf(object, "OK.\n");
-   } else {
-      fprintf(object, "Failed. \"%d\"\n", WEXITSTATUS(status));
-   }
-   total++;
-   fclose(source);
+    error = 0;
+    lookahead = -1;
+    lexeme[0] = 0;
+    //if(!(child = fork())) { // inicia novo processo
+       //fprintf(object, "child: %d\n", child);			  
+    
+       /* get the first token to begin the parsing */
+       lookahead = gettoken(source);
+       
+       /* call the grammar initial symbol */
+       double value = expr();
+		fprintf(object, " = %.2f\n", value);
+       if(!error && value == expected) {        
+	printf("OK.\n" );
+	done++;	
+       } else {
+	printf("Failed.\n" );
+	}
+   	total++;
+   	fclose(source);
 }
 
 do_tests(void) {
