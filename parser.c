@@ -128,7 +128,7 @@ void expr(void)
 	 goto _F;
   }
   
-  match('\n'); // EOF
+  match(EOF);
   return;
 }
 

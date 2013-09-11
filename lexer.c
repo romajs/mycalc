@@ -10,8 +10,8 @@ void skipspaces(FILE *tape)
 token_t isEOF(FILE *tape)
 {
 	token_t head;
-	if((head=getc(tape))== '\n') {
-		return head;
+	if((head = getc(tape)) == '\n' || head == EOF) {
+		return EOF;
 	}
 	ungetc(head, tape); return 0;
 }
@@ -80,13 +80,9 @@ void match(token_t predicted)
 {
   //fprintf(stdout, "\nlookahead: %d | predicted: %d\n", lookahead, predicted);
   if(lookahead == predicted) {
-    if(lookahead != '\n')
+    if(lookahead != EOF)
       lookahead = gettoken(source);
   } else {
-    fprintf(stderr,"token mismatch\n");
-    //ungetc(lookahead, source);
-    //int c;
-    //while((c=getc(source))!='\n' && c != EOF);
-    //exit(-666);
+    exit(TOKEN_MISMATCH);
   }
 }
