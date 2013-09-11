@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <mytype.h>
 #include <tokens.h>
 
@@ -37,7 +39,7 @@ void term(void);
  */
 void fact(void);
 
-extern match(token_t);
+extern void match(token_t);
 
 extern FILE *object;
 

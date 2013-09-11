@@ -10,7 +10,7 @@ void skipspaces(FILE *tape)
 token_t isEOF(FILE *tape)
 {
 	token_t head;
-	if((head=getc(tape))== 10) {
+	if((head=getc(tape))== '\n') {
 		return head;
 	}
 	ungetc(head, tape); return 0;
@@ -76,20 +76,17 @@ token_t gettoken(FILE *tape)
  * parser-to-lexer interface
  */
 
-match(token_t predicted)
+void match(token_t predicted)
 {
   //fprintf(stdout, "\nlookahead: %d | predicted: %d\n", lookahead, predicted);
   if(lookahead == predicted) {
-	if(lookahead != 10) {
-		lookahead = gettoken(source);
-		return 1;
-	}
-  }else{
+    if(lookahead != '\n')
+      lookahead = gettoken(source);
+  } else {
     fprintf(stderr,"token mismatch\n");
-	//ungetc(lookahead, source);
-	//int c;
-	//while((c=getc(source))!='\n' && c != EOF);
+    //ungetc(lookahead, source);
+    //int c;
+    //while((c=getc(source))!='\n' && c != EOF);
     //exit(-666);
   }
-	return 0;
 }
