@@ -8,13 +8,14 @@ int sp = -1;
 int oper[MAX_STACK_SIZE]; 					// pilha de operadores
 int opsp = -1;
 
-#define	MAX_MEM_SIZE		0x10000
-double acc[MAX_MEM_SIZE]; 					// acumulador ???
 
 #define	MAX_SYM_TAB				1024
-#define	MAX_ID_LEN				  32
-char SYMTAB[MAX_SYM_TAB][MAX_ID_LEN]; 	// tabela de símbolos
+#define	MAX_ID_LEN				  32 // já definido em tokens.h
+char SYMTAB[MAX_SYM_TAB][MAX_ID_LEN]; 	// tabela de símbolos (armazenamento variávies)
 int nextentry = -1; 							// posição da tabela (próxima entrada)
+
+#define	MAX_MEM_SIZE		0x10000
+double acc[MAX_MEM_SIZE]; 					// pilha de valores da tabela de símbolos
 
 // função que calcula o resultado entre duas variávies dado seu operador
 double calc(double x, double y, int op) {
@@ -27,7 +28,7 @@ double calc(double x, double y, int op) {
   return 0.00;
 }
 
-// busca e retorna o valor de uma determinada variável
+// busca uma variável na tabela de símbolos e retorna seu valor
 double recall(char const *variable) {
   int i;
   for(i = 0 ; i < nextentry; i++) {
@@ -71,9 +72,10 @@ double recall(char const *variable) {
  *  \------> '(' ----> (E) ----> ')' ----/
  *
  */
-void expr(void)
+int expr(void)
 {
   int chs = 0; // flag de inversão de sinal
+  E_lvl = 0;
   
   E:
   if(lookahead == '-') { // inversão de sinal
@@ -91,7 +93,7 @@ void expr(void)
     operand[++sp] = atof(lexeme); // empilha o valor da constante
     match(NUM);
   } else {
-	 E_lvl++;
+	E_lvl++;
     match('(');
     goto E;
   }
@@ -129,6 +131,6 @@ void expr(void)
   }
   
   match(EOF);
-  return;
+  return operand[sp--];
 }
 

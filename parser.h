@@ -20,7 +20,7 @@
  * (expr)---------->(term)--->(?)-->(@)
  *
  */
-void expr(void);
+int expr(void);
 /*
  * term -> fact { [*|/] fact }
  *

@@ -24,32 +24,28 @@ main(int argc, char *argv[])
 {
 	int status;
 	pid_t child;
-	fprintf(stdout, "exit: %d\n",  TOKEN_MISMATCH);
 	while(1) {
-	
-	    E_lvl = 0;
-		fprintf(stdout,"> ");
 		
 		source = stdin;        
         object = stdout;	
 		
 		if(!(child = fork())) {
-			//fprintf(object, "child: %d\n", child);
+			//fprintf(object, "child: %d\n", child);			
+			fprintf(stdout,"> ");
 			
 			/* get the first token to begin the parsing */
 			lookahead = gettoken(source);
 			
-			/* call the grammar initial symbol */
-			expr();			
-			
+			/* call the grammar initial symbol */		
+			fprintf(object, " = %d\n", expr());
 			exit(OK);
 		} else if (child == -1) {
 			perror("fork error.");
 			exit(EXIT_FAILURE);
 		} else {			
-			//fprintf(stdout,"waiting...\n");
+			//fprintf(stdout,"waiting parser...\n");
 			waitpid(child, &status, WUNTRACED);			
-			fprintf(object, "exit: %d\n", (int)status);	
+			fprintf(object, "parser exited with status: %d\n", status);	
 		}
 		
 		fetch_status(status);
