@@ -6,18 +6,20 @@ token_t lookahead;
 
 char lexeme[MAX_ID_LEN];
 
-fetch_status(int status) {
-	switch(status) {
+print_status_message(int status) {		
+	fprintf(object, "status: %d\n", WEXITSTATUS(status));
+	switch(WEXITSTATUS(status)) {
 	case OK:
-		fprintf(object, "OK.\n");
+		fprintf(object, "OK.");
 		break;
-	case 256: // deixei assim porque o 'status' retorna meio estranho
-	//case TOKEN_MISMATCH:		
-		fprintf(object, "Token mismatch.\n");
+	case TOKEN_MISMATCH:		
+		fprintf(object, "Token mismatch.");
 		break;
 	default:
+		fprintf(object, "Uncaught status.");
 		break;
 	}
+	fprintf(object, "\n");
 }
 
 main(int argc, char *argv[])
@@ -26,10 +28,11 @@ main(int argc, char *argv[])
 	pid_t child;
 	while(1) {
 		
+		status = -1;
 		source = stdin;        
         object = stdout;	
 		
-		if(!(child = fork())) {
+		if(!(child = fork())) { // inicia novo processo
 			//fprintf(object, "child: %d\n", child);			
 			fprintf(stdout,"> ");
 			
@@ -44,12 +47,12 @@ main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		} else {			
 			//fprintf(stdout,"waiting parser...\n");
-			waitpid(child, &status, WUNTRACED);			
-			fprintf(object, "parser exited with status: %d\n", status);	
+			waitpid(child, &status, WUNTRACED);	// aguarda o filho terminar	
 		}
 		
-		fetch_status(status);
-		fprintf(object, "E_lvl: %d\n\n", E_lvl);		
+		print_status_message(status);
+		//fprintf(object, "E_lvl: %d\n", E_lvl);
+		fprintf(object, "\n");		
 		fflush(source);
 	}
 	return EXIT_SUCCESS;
