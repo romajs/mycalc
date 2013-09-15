@@ -1,0 +1,16 @@
+
+typedef int token_t;
+
+#define	MAX_STACK_SIZE		0x10000
+double operand[MAX_STACK_SIZE]; // pilha de operandos (ID | CTE)
+int sp = -1;
+int oper[MAX_STACK_SIZE]; // pilha de operadores
+int opsp = -1;
+
+#define	MAX_MEM_SIZE		0x10000
+double acc[MAX_MEM_SIZE]; // acumulador
+
+#define	MAX_SYM_TAB				1024
+#define	MAX_ID_LEN				  32
+char SYMTAB[MAX_SYM_TAB][MAX_ID_LEN]; // tabela de símbolos
+int nextentry = -1; // posição da tabela

@@ -1,0 +1,7 @@
+Exception: STATUS_ACCESS_VIOLATION at eip=611339C0
+eax=0028A9A0 ebx=00002564 ecx=00000001 edx=00002564 esi=0028D404 edi=611339A0
+ebp=611868E0 esp=0028A8CC program=G:\mycalc\mycalc.exe, pid 3744, thread main
+cs=0023 ds=002B es=002B fs=0053 gs=002B ss=002B
+Stack trace:
+Frame     Function  Args
+End of stack trace

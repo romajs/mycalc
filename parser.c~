@@ -8,14 +8,13 @@ int sp = -1;
 int oper[MAX_STACK_SIZE]; 					// pilha de operadores
 int opsp = -1;
 
+#define	MAX_MEM_SIZE		0x10000
+double acc[MAX_MEM_SIZE]; 					// acumulador ???
 
 #define	MAX_SYM_TAB				1024
-#define	MAX_ID_LEN				  32 // já definido em tokens.h
-char SYMTAB[MAX_SYM_TAB][MAX_ID_LEN]; 	// tabela de símbolos (armazenamento variávies)
+#define	MAX_ID_LEN				  32
+char SYMTAB[MAX_SYM_TAB][MAX_ID_LEN]; 	// tabela de símbolos
 int nextentry = -1; 							// posição da tabela (próxima entrada)
-
-#define	MAX_MEM_SIZE		0x10000
-double acc[MAX_MEM_SIZE]; 					// pilha de valores da tabela de símbolos
 
 // função que calcula o resultado entre duas variávies dado seu operador
 double calc(double x, double y, int op) {
@@ -28,39 +27,15 @@ double calc(double x, double y, int op) {
   return 0.00;
 }
 
-// busca uma variável na tabela de símbolos e retorna seu valor
+// busca e retorna o valor de uma determinada variável
 double recall(char const *variable) {
   int i;
-  for(i = 0; i < nextentry; i++) {
-	if(strcmp(SYMTAB[i], variable) == 0)
+  for(i = 0 ; i < nextentry; i++) {
+	 if(strcmp(SYMTAB[i], variable) == 0)
 		return acc[i];
   }
   strcpy(SYMTAB[nextentry++], variable);
   return acc[i];
-}
-
-double reverse_signal() {
-	operand[sp] = -operand[sp];
-  fprintf(object, "(reverse) operand[%d] = %.2f\n", sp, operand[sp]);	
-}
-
-void push_operand(double value) {
-	operand[++sp] = value;
-	fprintf(object, "(push) operand[%d] = %.2f\n", sp, operand[sp]);	
-}
-
-void push_oper(token_t token) {
-	oper[++opsp] = token;
-	fprintf(object, "(push) oper[%d] = %c\n", opsp, oper[opsp]);	
-}
-
-double pop() {
-  //if(opsp > -1 && ( oper[opsp] == '*' || oper[opsp] == '/')) {
-  fprintf(object, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
-  operand[--sp] = calc(operand[sp+1], operand[sp], oper[opsp--]);
-  fprintf(object, "(pop)  operand[%d] = %.2f\n", sp, operand[sp]);	  
-  //}
-  return operand[sp];
 }
 
 /*
@@ -96,26 +71,24 @@ double pop() {
  *  \------> '(' ----> (E) ----> ')' ----/
  *
  */
-int expr(void)
+void expr(void)
 {
   int chs = 0; // flag de inversão de sinal
-  E_lvl = 0;
   
-  E: fprintf(object, "E:\n");
+  E:
   if(lookahead == '-') { // inversão de sinal
-	  chs = 1;
-    fprintf(object, "signal reverse activated.\n");
+	 chs = 1;
     match('-');
   }
   
-  T: fprintf(object, "T:\n");
+  T:
   
-  F: fprintf(object, "F:\n");
+  F:
   if(lookahead == ID) {
-    push_operand(recall(lexeme)); // empilha o valor da variável
+    operand[++sp] = recall(lexeme); // empilha o valor da varíavel
     match(ID);
   } else if(lookahead == NUM) {
-    push_operand(atof(lexeme)); // empilha o valor da constante
+    operand[++sp] = atof(lexeme); // empilha o valor da constante
     match(NUM);
   } else {
 	 E_lvl++;
@@ -123,39 +96,39 @@ int expr(void)
     goto E;
   }
   
-  _F: fprintf(object, "_F:\n");
-  if(opsp > -1 && ( oper[opsp] == '*' || oper[opsp] == '/')) {
-	  pop();	 
+  _F:
+  if(opsp > -1) { // calcula se houver operador na pilha
+	 operand[--sp] = calc(operand[sp+1], operand[sp], oper[opsp--]);	 
   }
   if(lookahead == '*'||lookahead == '/') {
-	  push_oper(lookahead);
+	 oper[++opsp] = lookahead;
     match(lookahead);
     goto F;
   }
   
-  _T: fprintf(object, "_T:\n");
+  _T:
   
-  if(chs) { // se houver sinal    
-    chs = 0;
-    reverse_signal(); // inverte
+  if(chs) { // inverte o sinal no topo da pilha de operadores
+	 chs = 0;
+	 operand[sp] = -operand[sp];
   }
   
-  if(opsp > -1 && ( oper[opsp] == '+' || oper[opsp] == '-')) {
-	  pop();	 
+  if(opsp > -1) { // calcula se houver operador na pilha
+	 operand[--sp] = calc(operand[sp+1], operand[sp], oper[opsp--]);	 
   }
   if(lookahead == '+'||lookahead == '-') {
-    push_oper(lookahead);
+	 oper[++opsp] = lookahead;	 
     match(lookahead);
     goto T;
   }
-  _E: fprintf(object, "_E:\n");
+  _E:
   if(E_lvl) {
-    E_lvl--;
-	  match(')');
-    goto _F;
+	 E_lvl--;
+	 match(')');
+	 goto _F;
   }
   
-  match(EOF);
-  return operand[sp--];
+  match('\n'); // EOF
+  return;
 }
 
