@@ -1,6 +1,6 @@
 #include <mycalc.h>
 
-FILE *source, *object;
+FILE *source, *object, *debug;
 
 token_t lookahead;
 
@@ -22,16 +22,31 @@ print_status_message(int status) {
 	fprintf(object, "\n");
 }
 
+void validate_arguments(int argc, char *argv[]) {
+  int i; // manipulação de parâmetros
+  //fprintf(object, "argc: %i\n", argc);
+  for(i = 1; i < argc; i++) {
+    //fprintf(object, "argv[%i]: %s\n", i, argv[i]);
+    if(strcmp(argv[i], "-d") == 0) { // habilita  modo debug
+      debug = object;
+    }
+  }
+}
+
 main(int argc, char *argv[])
 {
 	int status;
 	pid_t child;
+ 
+	source = stdin;        
+  object = stdout;
+  
+  validate_arguments(argc, argv);
+    
 	while(1) {
 		
-		status = -1;
-		source = stdin;        
-        object = stdout;	
-		
+		status = -1;	
+    
 		if(!(child = fork())) { // inicia novo processo
 			//fprintf(object, "child: %d\n", child);			
 			fprintf(stdout,"> ");

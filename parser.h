@@ -43,6 +43,8 @@ extern void match(token_t);
 
 extern FILE *object;
 
+extern FILE *debug;
+
 extern token_t lookahead;
 
 extern char lexeme[];

@@ -41,24 +41,24 @@ double recall(char const *variable) {
 
 double reverse_signal() {
 	operand[sp] = -operand[sp];
-  fprintf(object, "(reverse) operand[%d] = %.2f\n", sp, operand[sp]);	
+  fprintf(debug, "(reverse) operand[%d] = %.2f\n", sp, operand[sp]);	
 }
 
 void push_operand(double value) {
 	operand[++sp] = value;
-	fprintf(object, "(push) operand[%d] = %.2f\n", sp, operand[sp]);	
+	fprintf(debug, "(push) operand[%d] = %.2f\n", sp, operand[sp]);	
 }
 
 void push_oper(token_t token) {
 	oper[++opsp] = token;
-	fprintf(object, "(push) oper[%d] = %c\n", opsp, oper[opsp]);	
+	fprintf(debug, "(push) oper[%d] = %c\n", opsp, oper[opsp]);	
 }
 
 double pop() {
   //if(opsp > -1 && ( oper[opsp] == '*' || oper[opsp] == '/')) {
-  fprintf(object, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
+  fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
   operand[--sp] = calc(operand[sp+1], operand[sp], oper[opsp--]);
-  fprintf(object, "(pop)  operand[%d] = %.2f\n", sp, operand[sp]);	  
+  fprintf(debug, "(pop)  operand[%d] = %.2f\n", sp, operand[sp]);	  
   //}
   return operand[sp];
 }
@@ -101,16 +101,17 @@ int expr(void)
   int chs = 0; // flag de inversão de sinal
   E_lvl = 0;
   
-  E: fprintf(object, "E:\n");
+  E: fprintf(debug, "E:\n");
   if(lookahead == '-') { // inversão de sinal
 	  chs = 1;
-    fprintf(object, "signal reverse activated.\n");
+    fprintf(debug, "signal reverse activated.\n");
     match('-');
   }
   
-  T: fprintf(object, "T:\n");
+  T: fprintf(debug, "T:\n");
   
-  F: fprintf(object, "F:\n");
+  F: fprintf(debug, "F:\n");
+  
   if(lookahead == ID) {
     push_operand(recall(lexeme)); // empilha o valor da variável
     match(ID);
@@ -123,7 +124,7 @@ int expr(void)
     goto E;
   }
   
-  _F: fprintf(object, "_F:\n");
+  _F: fprintf(debug, "_F:\n");
   if(opsp > -1 && ( oper[opsp] == '*' || oper[opsp] == '/')) {
 	  pop();	 
   }
@@ -133,7 +134,7 @@ int expr(void)
     goto F;
   }
   
-  _T: fprintf(object, "_T:\n");
+  _T: fprintf(debug, "_T:\n");
   
   if(chs) { // se houver sinal    
     chs = 0;
@@ -148,7 +149,7 @@ int expr(void)
     match(lookahead);
     goto T;
   }
-  _E: fprintf(object, "_E:\n");
+  _E: fprintf(debug, "_E:\n");
   if(E_lvl) {
     E_lvl--;
 	  match(')');
