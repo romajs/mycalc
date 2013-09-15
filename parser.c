@@ -1,7 +1,5 @@
 #include <parser.h>
 
-int E_lvl; 										// contador de parêntese (qtd de recursões em E)
-
 #define	MAX_STACK_SIZE		0x10000
 double operand[MAX_STACK_SIZE]; 			// pilha de operandos (ID | CTE)
 int sp = -1;
@@ -18,14 +16,16 @@ int nextentry = -1; 							// posição da tabela (próxima entrada)
 double acc[MAX_MEM_SIZE]; 					// pilha de valores da tabela de símbolos
 
 // função que calcula o resultado entre duas variávies dado seu operador
-double calc(double x, double y, int op) {
+double calc(double x, double y, int op) { 
+  double result = 0.00;
   switch(op) {
-	 case '+': return x + y;
-	 case '-': return x - y;
-	 case '*': return x * y;
-	 case '/': return x / y;
+	 case '+': result = x + y; break;
+	 case '-': result = x - y; break;
+	 case '*': result = x * y; break;
+	 case '/': result = x / y; break;
   }
-  return 0.00;
+  fprintf(debug, "(calc) %.2f %c %.2f = %.2f\n", x, op, y, result);
+  return result;
 }
 
 // busca uma variável na tabela de símbolos e retorna seu valor
@@ -99,18 +99,18 @@ double pop() {
 int expr(void)
 {
   int chs = 0; // flag de inversão de sinal
-  E_lvl = 0;
+  int E_lvl = -1, T_lvl = -1, F_lvl = -1;
   
-  E: fprintf(debug, "E:\n");
+  E: fprintf(debug, "E: %d\n", ++E_lvl);
   if(lookahead == '-') { // inversão de sinal
 	  chs = 1;
     fprintf(debug, "signal reverse activated.\n");
     match('-');
   }
   
-  T: fprintf(debug, "T:\n");
+  T: fprintf(debug, "T: %d\n", ++T_lvl);
   
-  F: fprintf(debug, "F:\n");
+  F: fprintf(debug, "F: %d\n", ++F_lvl);
   
   if(lookahead == ID) {
     push_operand(recall(lexeme)); // empilha o valor da variável
@@ -119,29 +119,29 @@ int expr(void)
     push_operand(atof(lexeme)); // empilha o valor da constante
     match(NUM);
   } else {
-	 E_lvl++;
     match('(');
     goto E;
   }
   
-  _F: fprintf(debug, "_F:\n");
-  if(opsp > -1 && ( oper[opsp] == '*' || oper[opsp] == '/')) {
-	  pop();	 
+  _F: fprintf(debug, "_F: %d\n", --F_lvl);
+  if(opsp > -1) {
+    pop();	 
   }
+  
   if(lookahead == '*'||lookahead == '/') {
 	  push_oper(lookahead);
     match(lookahead);
     goto F;
   }
   
-  _T: fprintf(debug, "_T:\n");
+  _T: fprintf(debug, "_T: %d\n", --T_lvl);
   
   if(chs) { // se houver sinal    
     chs = 0;
     reverse_signal(); // inverte
   }
   
-  if(opsp > -1 && ( oper[opsp] == '+' || oper[opsp] == '-')) {
+  if(opsp > -1) {
 	  pop();	 
   }
   if(lookahead == '+'||lookahead == '-') {
@@ -149,9 +149,9 @@ int expr(void)
     match(lookahead);
     goto T;
   }
-  _E: fprintf(debug, "_E:\n");
-  if(E_lvl) {
-    E_lvl--;
+  _E: fprintf(debug, "_E: %d\n", --E_lvl);
+  if(E_lvl >= 0) {
+    //E_lvl--;
 	  match(')');
     goto _F;
   }
@@ -159,4 +159,3 @@ int expr(void)
   match(EOF);
   return operand[sp--];
 }
-

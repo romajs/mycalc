@@ -66,7 +66,6 @@ main(int argc, char *argv[])
 		}
 		
 		print_status_message(status);
-		//fprintf(object, "E_lvl: %d\n", E_lvl);
 		fprintf(object, "\n");		
 		fflush(source);
 	}

@@ -5,5 +5,3 @@
 extern token_t gettoken(FILE *);
 
 extern int expr(void);
-
-extern int E_lvl;
