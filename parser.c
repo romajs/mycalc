@@ -102,6 +102,7 @@ int expr(void)
   int E_lvl = -1, T_lvl = -1, F_lvl = -1;
   
   E: fprintf(debug, "E: %d\n", ++E_lvl);
+  
   if(lookahead == '-') { // inversão de sinal
 	  chs = 1;
     fprintf(debug, "signal reverse activated.\n");
@@ -121,12 +122,9 @@ int expr(void)
   } else {
     match('(');
     goto E;
-  }
+  }  
   
   _F: fprintf(debug, "_F: %d\n", --F_lvl);
-  if(opsp > -1) {
-    pop();	 
-  }
   
   if(lookahead == '*'||lookahead == '/') {
 	  push_oper(lookahead);
@@ -144,18 +142,25 @@ int expr(void)
   if(opsp > -1) {
 	  pop();	 
   }
+ 
   if(lookahead == '+'||lookahead == '-') {
     push_oper(lookahead);
     match(lookahead);
     goto T;
   }
+  
   _E: fprintf(debug, "_E: %d\n", --E_lvl);
-  if(E_lvl >= 0) {
-    //E_lvl--;
+  
+  if(E_lvl > -1) {
 	  match(')');
     goto _F;
   }
   
-  match(EOF);
+  match(EOF);   
+    
+  if(opsp > -1) {
+	  pop();	 
+  }
+  
   return operand[sp--];
 }

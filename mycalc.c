@@ -13,7 +13,7 @@ print_status_message(int status) {
 		fprintf(object, "OK.");
 		break;
 	case TOKEN_MISMATCH:		
-		fprintf(object, "Token mismatch.");
+		fprintf(object, "Token mismatch (%d).", lookahead);
 		break;
 	default:
 		fprintf(object, "Uncaught status.");
