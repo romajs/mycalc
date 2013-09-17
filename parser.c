@@ -32,16 +32,16 @@ double calc(double x, double y, int op) {
 double recall(char const *variable) {
   int i;
   for(i = 0; i < nextentry; i++) {
-	if(strcmp(SYMTAB[i], variable) == 0)
-		return acc[i];
-  }
+		if(strcmp(SYMTAB[i], variable) == 0)
+			return acc[i];
+	}
   strcpy(SYMTAB[nextentry++], variable);
   return acc[i];
 }
 
-double reverse_signal() {
+double revert_signal() {
 	operand[sp] = -operand[sp];
-  fprintf(debug, "(reverse) operand[%d] = %.2f\n", sp, operand[sp]);	
+  fprintf(debug, "(revert) operand[%d] = %.2f\n", sp, operand[sp]);	
 }
 
 void push_operand(double value) {
@@ -55,11 +55,11 @@ void push_oper(token_t token) {
 }
 
 double pop() {
-  //if(opsp > -1 && ( oper[opsp] == '*' || oper[opsp] == '/')) {
-  fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
-  operand[--sp] = calc(operand[sp+1], operand[sp], oper[opsp--]);
-  fprintf(debug, "(pop)  operand[%d] = %.2f\n", sp, operand[sp]);	  
-  //}
+  if(opsp > -1) {
+	  fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
+	  operand[--sp] = calc(operand[sp+1], operand[sp], oper[opsp--]);
+	  fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	  
+  }
   return operand[sp];
 }
 
@@ -105,7 +105,7 @@ int expr(void)
   
   if(lookahead == '-') { // inversão de sinal
 	  chs = 1;
-    fprintf(debug, "signal reverse activated.\n");
+    fprintf(debug, "signal reversion activated!\n");
     match('-');
   }
   
@@ -125,6 +125,8 @@ int expr(void)
   }  
   
   _F: fprintf(debug, "_F: %d\n", --F_lvl);
+      
+	pop();	 
   
   if(lookahead == '*'||lookahead == '/') {
 	  push_oper(lookahead);
@@ -136,12 +138,10 @@ int expr(void)
   
   if(chs) { // se houver sinal    
     chs = 0;
-    reverse_signal(); // inverte
+    revert_signal(); // inverte
   }
   
-  if(opsp > -1) {
-	  pop();	 
-  }
+	pop();	
  
   if(lookahead == '+'||lookahead == '-') {
     push_oper(lookahead);
@@ -156,11 +156,9 @@ int expr(void)
     goto _F;
   }
   
-  match(EOF);   
-    
-  if(opsp > -1) {
-	  pop();	 
-  }
-  
+  match(EOF); 
+	
+	fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	 
+	
   return operand[sp--];
 }
