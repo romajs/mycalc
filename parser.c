@@ -54,20 +54,31 @@ void push_oper(token_t token) {
 	fprintf(debug, "(push) oper[%d] = %c\n", opsp, oper[opsp]);	
 }
 
+token_t pop_oper() {
+	fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
+	return oper[opsp--];
+}
+
+int E_lvl = -1, T_lvl = -1, F_lvl = -1;
 int queue = 0;
 
 double unqueue() {
-	fprintf(debug, "unqueue: %d\n", queue);	
   if(opsp > -1) {
-		queue++; // deve incrementar ao menos uma vez (já que chegou até aqui)
-		if((oper[opsp] == '*' || oper[opsp] == '/') || lookahead == EOF) {
+	
+		fprintf(debug, "unqueue: %d\n", queue);
+		
+		if(lookahead != ')') {
+			queue++; // deve incrementar ao menos uma vez (já que chegou até aqui)		
+		}
+		
+		if((oper[opsp] == '*' || oper[opsp] == '/') || lookahead == EOF || lookahead == ')') {
 			do {			
 				fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
 				operand[--sp] = calc(operand[sp+1], operand[sp], oper[opsp--]);
 				fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
 				
 				fprintf(debug, "queue--: %d\n", --queue);
-			} while(queue);	
+			} while(queue && oper[opsp] != '(');	
 		} else {
 			fprintf(debug, "(queued) oper[%d] = %c\n", opsp, oper[opsp]);	
 			fprintf(debug, "queue++: %d\n", queue);
@@ -79,7 +90,7 @@ double unqueue() {
 int expr(void)
 {
   int chs = 0; // flag de inversão de sinal
-  int E_lvl = -1, T_lvl = -1, F_lvl = -1;
+  E_lvl = -1, T_lvl = -1, F_lvl = -1;
 	queue = 0;
   
   E: fprintf(debug, "E: %d\n", ++E_lvl);
@@ -102,6 +113,9 @@ int expr(void)
     match(NUM);
   } else {
     match('(');
+		push_oper('(');
+		fprintf(debug, "(queued) oper[%d] = %c\n", opsp-1, oper[opsp-1]);	
+		fprintf(debug, "queue++: %d\n", ++queue);
     goto E;
   }  
   
@@ -132,6 +146,7 @@ int expr(void)
   
   if(E_lvl > -1) {
 	  match(')');
+		pop_oper();
     goto _F;
   }
   
