@@ -5,7 +5,8 @@ double operand[MAX_STACK_SIZE]; 			// pilha de operandos (ID | CTE)
 int sp = -1;
 int oper[MAX_STACK_SIZE]; 					// pilha de operadores
 int opsp = -1;
-
+int queue[MAX_STACK_SIZE];
+int qsp = -1;
 
 #define	MAX_SYM_TAB				1024
 #define	MAX_ID_LEN				  32 // já definido em tokens.h
@@ -59,17 +60,11 @@ token_t pop_oper() {
 	return oper[opsp--];
 }
 
-int E_lvl = -1, T_lvl = -1, F_lvl = -1;
-int queue = 0;
-
 double unqueue() {
   if(opsp > -1) {
 	
-		fprintf(debug, "unqueue: %d\n", queue);
-		
-		if(lookahead != ')') {
-			queue++; // deve incrementar ao menos uma vez (já que chegou até aqui)		
-		}
+		fprintf(debug, "unqueue: queue[%d]++ = %d\n", qsp, queue[qsp]);
+		queue[qsp]++; // deve incrementar ao menos uma vez (já que chegou até aqui)
 		
 		if((oper[opsp] == '*' || oper[opsp] == '/') || lookahead == EOF || lookahead == ')') {
 			do {			
@@ -77,11 +72,11 @@ double unqueue() {
 				operand[--sp] = calc(operand[sp+1], operand[sp], oper[opsp--]);
 				fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
 				
-				fprintf(debug, "queue--: %d\n", --queue);
-			} while(queue && oper[opsp] != '(');	
+				fprintf(debug, "queue[%d] = %d\n", qsp, --queue[qsp]);
+			} while(queue[qsp]);	
 		} else {
 			fprintf(debug, "(queued) oper[%d] = %c\n", opsp, oper[opsp]);	
-			fprintf(debug, "queue++: %d\n", queue);
+			fprintf(debug, "queue[%d]++ = %d\n", qsp, queue[qsp]);
 		}
   }
   return operand[sp];
@@ -90,11 +85,12 @@ double unqueue() {
 int expr(void)
 {
   int chs = 0; // flag de inversão de sinal
-  E_lvl = -1, T_lvl = -1, F_lvl = -1;
-	queue = 0;
-  
+  int E_lvl = -1, T_lvl = -1, F_lvl = -1;
+	
   E: fprintf(debug, "E: %d\n", ++E_lvl);
   
+	qsp++;
+	
   if(lookahead == '-') { // inversão de sinal
 	  chs = 1;
     fprintf(debug, "signal reversion activated!\n");
@@ -113,9 +109,6 @@ int expr(void)
     match(NUM);
   } else {
     match('(');
-		push_oper('(');
-		fprintf(debug, "(queued) oper[%d] = %c\n", opsp-1, oper[opsp-1]);	
-		fprintf(debug, "queue++: %d\n", ++queue);
     goto E;
   }  
   
@@ -146,7 +139,7 @@ int expr(void)
   
   if(E_lvl > -1) {
 	  match(')');
-		pop_oper();
+		qsp--;
     goto _F;
   }
   
