@@ -69,8 +69,10 @@ token_t gettoken(FILE *tape)
   
   if (token = isNUM(tape)) return token;
   
+	lexeme[0] = getc(tape);
   lexeme[1] = 0;  
-  return lexeme[0] = getc(tape);
+	fprintf(debug, "lexeme = %s\n", lexeme);
+  return lexeme[0];
 }
 /**************************************************************************
  * parser-to-lexer interface
@@ -82,6 +84,7 @@ void match(token_t predicted)
   if(lookahead == predicted) {
     if(lookahead != EOF)
       lookahead = gettoken(source);
+			fprintf(debug, "lookahead = %d \"%c\"\n", lookahead, lookahead);
   } else {
     exit(TOKEN_MISMATCH);
   }
