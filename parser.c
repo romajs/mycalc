@@ -54,15 +54,93 @@ void push_oper(token_t token) {
 	fprintf(debug, "(push) oper[%d] = %c\n", opsp, oper[opsp]);	
 }
 
-double pop() {
+int queue = 0;
+
+double unqueue() {
+	fprintf(debug, "unqueue: %d\n", queue);	
   if(opsp > -1) {
-	  fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
-	  operand[--sp] = calc(operand[sp+1], operand[sp], oper[opsp--]);
-	  fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	  
+		queue++; // deve incrementar ao menos uma vez (já que chegou até aqui)
+		if((oper[opsp] == '*' || oper[opsp] == '/') || lookahead == EOF) {
+			do {			
+				fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
+				operand[--sp] = calc(operand[sp+1], operand[sp], oper[opsp--]);
+				fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
+				
+				fprintf(debug, "queue--: %d\n", --queue);
+			} while(queue);	
+		} else {
+			fprintf(debug, "(queued) oper[%d] = %c\n", opsp, oper[opsp]);	
+			fprintf(debug, "queue++: %d\n", queue);
+		}
   }
   return operand[sp];
 }
 
+int expr(void)
+{
+  int chs = 0; // flag de inversão de sinal
+  int E_lvl = -1, T_lvl = -1, F_lvl = -1;
+	queue = 0;
+  
+  E: fprintf(debug, "E: %d\n", ++E_lvl);
+  
+  if(lookahead == '-') { // inversão de sinal
+	  chs = 1;
+    fprintf(debug, "signal reversion activated!\n");
+    match('-');
+  }
+  
+  T: fprintf(debug, "T: %d\n", ++T_lvl);
+  
+  F: fprintf(debug, "F: %d\n", ++F_lvl);
+  
+  if(lookahead == ID) {
+    push_operand(recall(lexeme)); // empilha o valor da variável
+    match(ID);
+  } else if(lookahead == NUM) {
+    push_operand(atof(lexeme)); // empilha o valor da constante
+    match(NUM);
+  } else {
+    match('(');
+    goto E;
+  }  
+  
+  _F: fprintf(debug, "_F: %d\n", --F_lvl);
+      
+	unqueue();	 
+  
+  if(lookahead == '*'||lookahead == '/') {
+	  push_oper(lookahead);
+    match(lookahead);
+    goto F;
+  }
+  
+  _T: fprintf(debug, "_T: %d\n", --T_lvl);
+  
+  if(chs) { // se houver sinal    
+    chs = 0;
+    revert_signal(); // inverte
+  }
+ 
+  if(lookahead == '+'||lookahead == '-') {
+    push_oper(lookahead);
+    match(lookahead);
+    goto T;
+  }
+  
+  _E: fprintf(debug, "_E: %d\n", --E_lvl);
+  
+  if(E_lvl > -1) {
+	  match(')');
+    goto _F;
+  }
+  
+  match(EOF); 
+	
+	fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	 
+	
+  return operand[sp--];
+}
 /*
  * LL(1) expression grammar
  *
@@ -96,69 +174,3 @@ double pop() {
  *  \------> '(' ----> (E) ----> ')' ----/
  *
  */
-int expr(void)
-{
-  int chs = 0; // flag de inversão de sinal
-  int E_lvl = -1, T_lvl = -1, F_lvl = -1;
-  
-  E: fprintf(debug, "E: %d\n", ++E_lvl);
-  
-  if(lookahead == '-') { // inversão de sinal
-	  chs = 1;
-    fprintf(debug, "signal reversion activated!\n");
-    match('-');
-  }
-  
-  T: fprintf(debug, "T: %d\n", ++T_lvl);
-  
-  F: fprintf(debug, "F: %d\n", ++F_lvl);
-  
-  if(lookahead == ID) {
-    push_operand(recall(lexeme)); // empilha o valor da variável
-    match(ID);
-  } else if(lookahead == NUM) {
-    push_operand(atof(lexeme)); // empilha o valor da constante
-    match(NUM);
-  } else {
-    match('(');
-    goto E;
-  }  
-  
-  _F: fprintf(debug, "_F: %d\n", --F_lvl);
-      
-	pop();	 
-  
-  if(lookahead == '*'||lookahead == '/') {
-	  push_oper(lookahead);
-    match(lookahead);
-    goto F;
-  }
-  
-  _T: fprintf(debug, "_T: %d\n", --T_lvl);
-  
-  if(chs) { // se houver sinal    
-    chs = 0;
-    revert_signal(); // inverte
-  }
-  
-	pop();	
- 
-  if(lookahead == '+'||lookahead == '-') {
-    push_oper(lookahead);
-    match(lookahead);
-    goto T;
-  }
-  
-  _E: fprintf(debug, "_E: %d\n", --E_lvl);
-  
-  if(E_lvl > -1) {
-	  match(')');
-    goto _F;
-  }
-  
-  match(EOF); 
-	
-	fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	 
-	
-  return operand[sp--];
-}
