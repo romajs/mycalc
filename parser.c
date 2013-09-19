@@ -61,20 +61,27 @@ token_t pop_oper() {
 	return oper[E_lvl][opsp--];
 }
 
+// função que verifica se é possível operar no momento
+should_oper() {
+	// pode operar desde que:
+	//	1 - enquanto houverem operadoes;
+	//	2 - enquanto o próximo operador não for '*' ou '/';
+	return oper[E_lvl][opsp]  && !(lookahead == '*' || lookahead == '/');
+}
 
+// função que executa as operações da pilha, desde que possa operar
 double exec_oper() {
-  if(opsp > - 1 && oper[E_lvl][opsp]) {
+  if(opsp > - 1 && oper[E_lvl][opsp]) { // verifica se há operadores da pilha
 	
-		if(can_oper) {
+		if(can_oper) { // se puder operar
 			do {			
 				fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
 				operand[--sp] = calc(operand[sp+1], operand[sp], oper[E_lvl][opsp--]);
 				fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
-			} while(oper[E_lvl][opsp]);	
-		} else {
-		}
+			} while(can_oper = should_oper());	// enquanto puder operar
+		} 
   }
-  return operand[sp];
+  return operand[sp]; // retorna o operando calculado (popado)
 }
 
 int expr(void)
@@ -82,9 +89,10 @@ int expr(void)
   int chs = 0; // flag de inversão de sinal
 	E_lvl = -1, T_lvl = -1, F_lvl = -1;
 	sp = -1, opsp = -1;
-	can_oper = 0;
 	
   E: fprintf(debug, "E: %d\n", ++E_lvl);
+	
+	can_oper = 0;
 	
   if(lookahead == '-') { // inversão de sinal
 	  chs = 1;
@@ -109,7 +117,7 @@ int expr(void)
   
   _F: fprintf(debug, "_F: %d\n", --F_lvl);
       
-	exec_oper();	 
+	exec_oper(); // executa as operações mais 'voláteis' ('*' & '/')	 
   
   if(lookahead == '*' || lookahead == '/') {
 	  push_oper(lookahead);
@@ -125,13 +133,15 @@ int expr(void)
     revert_signal(); // inverte
   }
  
+  can_oper = 0; // operações de '+' ou '-' são 'agendadas'
+ 
   if(lookahead == '+' || lookahead == '-') {
     push_oper(lookahead);
     match(lookahead);
     goto T;
   }
 	
-	// se chegou até É porque OU é fim de arquivo OU é ')' então deve operar o restante
+	// se chegou até É porque OU é fim de arquivo OU é ')' então deve operar o restante da pilha
 	can_oper = 1;
 	exec_oper();	
   
