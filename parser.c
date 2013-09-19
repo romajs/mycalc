@@ -1,29 +1,30 @@
 #include <parser.h>
 
-#define	MAX_STACK_SIZE		0x10000
-double operand[MAX_STACK_SIZE]; 			// pilha de operandos (ID | CTE)
-int sp = -1;
-int oper[MAX_STACK_SIZE]; 					// pilha de operadores
+#define	MAX_STACK_SIZE		0x10000			
+#define MAX_RECURSION_SIZE			0x100			
+double operand[MAX_STACK_SIZE]; 								// pilha de operandos (ID | CTE)
+int sp = -1;														
+int oper[MAX_STACK_SIZE][MAX_RECURSION_SIZE];		// pilha de operadores
 int opsp = -1;
-int queue[MAX_STACK_SIZE];
-int qsp = -1;
+int can_oper = 0;																// permite a execução de operações
+int E_lvl = -1, T_lvl = -1, F_lvl = -1; 				// contadores de recursão
 
-#define	MAX_SYM_TAB				1024
-#define	MAX_ID_LEN				  32 // já definido em tokens.h
-char SYMTAB[MAX_SYM_TAB][MAX_ID_LEN]; 	// tabela de símbolos (armazenamento variávies)
-int nextentry = -1; 							// posição da tabela (próxima entrada)
+#define	MAX_SYM_TAB				1024							
+#define	MAX_ID_LEN				  32 									// obs: já definido em tokens.h
+char SYMTAB[MAX_SYM_TAB][MAX_ID_LEN]; 					// tabela de símbolos (armazenamento variávies)
+int nextentry = -1; 														// posição da tabela (próxima entrada)
 
-#define	MAX_MEM_SIZE		0x10000
-double acc[MAX_MEM_SIZE]; 					// pilha de valores da tabela de símbolos
+#define	MAX_MEM_SIZE		0x10000									//
+double acc[MAX_MEM_SIZE]; 											// pilha de valores da tabela de símbolos
 
 // função que calcula o resultado entre duas variávies dado seu operador
 double calc(double x, double y, int op) { 
   double result = 0.00;
   switch(op) {
-	 case '+': result = x + y; break;
-	 case '-': result = x - y; break;
-	 case '*': result = x * y; break;
-	 case '/': result = x / y; break;
+		case '+': result = x + y; break;
+		case '-': result = x - y; break;
+		case '*': result = x * y; break;
+		case '/': result = x / y; break;
   }
   fprintf(debug, "(calc) %.2f %c %.2f = %.2f\n", x, op, y, result);
   return result;
@@ -51,32 +52,33 @@ void push_operand(double value) {
 }
 
 void push_oper(token_t token) {
-	oper[++opsp] = token;
-	fprintf(debug, "(push) oper[%d] = %c\n", opsp, oper[opsp]);	
+	oper[E_lvl][++opsp] = token;
+	fprintf(debug, "(push) oper[%d] = %c\n", opsp, oper[E_lvl][opsp]);	
 }
 
 token_t pop_oper() {
-	fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
-	return oper[opsp--];
+	fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[E_lvl][opsp]);	
+	return oper[E_lvl][opsp--];
 }
 
-double unqueue() {
-  if(opsp > -1) {
+
+double exec_oper() {
+  if(opsp > - 1 && oper[E_lvl][opsp]) {
 	
-		fprintf(debug, "unqueue: queue[%d]++ = %d\n", qsp, queue[qsp]);
-		queue[qsp]++; // deve incrementar ao menos uma vez (já que chegou até aqui)
+		//fprintf(debug, "queue[%d] = %d\n", qsp, queue[qsp]);
+		//queue[qsp]++; // deve incrementar ao menos uma vez (já que chegou até aqui)
 		
-		if((oper[opsp] == '*' || oper[opsp] == '/') || lookahead == EOF || lookahead == ')') {
+		if(can_oper) {
 			do {			
 				fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
-				operand[--sp] = calc(operand[sp+1], operand[sp], oper[opsp--]);
+				operand[--sp] = calc(operand[sp+1], operand[sp], oper[E_lvl][opsp--]);
 				fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
 				
-				fprintf(debug, "queue[%d] = %d\n", qsp, --queue[qsp]);
-			} while(queue[qsp]);	
+				//fprintf(debug, "(unqueued) queue[%d] = %d\n", qsp, --queue[qsp]);
+			} while(oper[E_lvl][opsp]);	
 		} else {
-			fprintf(debug, "(queued) oper[%d] = %c\n", opsp, oper[opsp]);	
-			fprintf(debug, "queue[%d]++ = %d\n", qsp, queue[qsp]);
+			//fprintf(debug, "(queued) oper[%d] = %c\n", opsp, oper[opsp]);	
+			//fprintf(debug, "(queued) queue[%d] = %d\n", qsp, queue[qsp]);
 		}
   }
   return operand[sp];
@@ -85,11 +87,11 @@ double unqueue() {
 int expr(void)
 {
   int chs = 0; // flag de inversão de sinal
-  int E_lvl = -1, T_lvl = -1, F_lvl = -1;
+	E_lvl = -1, T_lvl = -1, F_lvl = -1;
+	sp = -1, opsp = -1;
+	can_oper = 0;
 	
   E: fprintf(debug, "E: %d\n", ++E_lvl);
-  
-	qsp++;
 	
   if(lookahead == '-') { // inversão de sinal
 	  chs = 1;
@@ -114,11 +116,12 @@ int expr(void)
   
   _F: fprintf(debug, "_F: %d\n", --F_lvl);
       
-	unqueue();	 
+	exec_oper();	 
   
-  if(lookahead == '*'||lookahead == '/') {
+  if(lookahead == '*' || lookahead == '/') {
 	  push_oper(lookahead);
     match(lookahead);
+		can_oper = 1;
     goto F;
   }
   
@@ -129,17 +132,20 @@ int expr(void)
     revert_signal(); // inverte
   }
  
-  if(lookahead == '+'||lookahead == '-') {
+  if(lookahead == '+' || lookahead == '-') {
     push_oper(lookahead);
     match(lookahead);
     goto T;
   }
+	
+	// se chegou até É porque OU é fim de arquivo OU é ')' então deve operar o restante
+	can_oper = 1;
+	exec_oper();	
   
   _E: fprintf(debug, "_E: %d\n", --E_lvl);
   
   if(E_lvl > -1) {
 	  match(')');
-		qsp--;
     goto _F;
   }
   
