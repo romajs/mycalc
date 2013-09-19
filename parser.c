@@ -1,6 +1,6 @@
 #include <parser.h>
 
-#define	MAX_STACK_SIZE		0x10000			
+#define	MAX_STACK_SIZE		0x1000			
 #define MAX_RECURSION_SIZE			0x100			
 double operand[MAX_STACK_SIZE]; 								// pilha de operandos (ID | CTE)
 int sp = -1;														
@@ -65,20 +65,13 @@ token_t pop_oper() {
 double exec_oper() {
   if(opsp > - 1 && oper[E_lvl][opsp]) {
 	
-		//fprintf(debug, "queue[%d] = %d\n", qsp, queue[qsp]);
-		//queue[qsp]++; // deve incrementar ao menos uma vez (já que chegou até aqui)
-		
 		if(can_oper) {
 			do {			
 				fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
 				operand[--sp] = calc(operand[sp+1], operand[sp], oper[E_lvl][opsp--]);
 				fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
-				
-				//fprintf(debug, "(unqueued) queue[%d] = %d\n", qsp, --queue[qsp]);
 			} while(oper[E_lvl][opsp]);	
 		} else {
-			//fprintf(debug, "(queued) oper[%d] = %c\n", opsp, oper[opsp]);	
-			//fprintf(debug, "(queued) queue[%d] = %d\n", qsp, queue[qsp]);
 		}
   }
   return operand[sp];
