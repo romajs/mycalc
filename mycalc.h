@@ -3,7 +3,7 @@
 #include <parser.h>
 #include <args.h>
 
-#define PROMPT "mycalc>"
+#define PROMPT ">"
 
 extern token_t gettoken(FILE *);
 

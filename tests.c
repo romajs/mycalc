@@ -2,13 +2,11 @@
 
 test(const char* expression, int expected) {
    fprintf(object, "Testing: \"%s\", expeced: \"%d\".\n", expression, expected);
-	fprintf(source, "%s\n", expression);
+	 fprintf(source, "%s\n", expression);
    rewind(source);
-   static int value;
       
    pid_t child;
-   int status = -1;   
-   fflush(source);
+   int status = -1; 
    
    // copiado de 'mycalc.c' e adaptado
    if(!(child = fork())) { // inicia novo processo
@@ -18,7 +16,7 @@ test(const char* expression, int expected) {
       lookahead = gettoken(source);
       
       /* call the grammar initial symbol */	
-      value = expr();
+      int value = expr();
       fprintf(object, " = %d\n", value);
       
       if(value == expected) {
@@ -33,7 +31,9 @@ test(const char* expression, int expected) {
    } else {			
       //fprintf(object, "waiting for expr...\n");
       waitpid(child, &status, WUNTRACED);	// aguarda o filho terminar	
-   }
+   }	 
+	   
+   fflush(source);
  
    if(WEXITSTATUS(status) == OK) {
       fprintf(object, "OK.\n");
@@ -44,7 +44,7 @@ test(const char* expression, int expected) {
 
 do_tests(void) {
 	fprintf(object, "Initiating tests...\n");	
-	source = fopen("test", "rw"); //object;
+	source = fopen("test.txt", "wr"); //object;
 	test("1+2", 3);
 	test("1+2+3*4", 15);
 	test("1+2*3+4", 11);

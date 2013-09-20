@@ -33,8 +33,7 @@ main(int argc, char *argv[])
       fprintf(object, "%s", PROMPT);
       
       pid_t child;
-      int status = -1;   
-      fflush(source);
+      int status = -1; 
       
       if(!(child = fork())) { // inicia novo processo
          //fprintf(object, "child: %d\n", child);		
@@ -42,7 +41,7 @@ main(int argc, char *argv[])
          /* get the first token to begin the parsing */
          lookahead = gettoken(source);
          
-         /* call the grammar initial symbol */	
+         /* call the grammar initial symbol */				 
          fprintf(object, " = %d\n", expr());
          exit(OK);
       } else if (child == -1) {
@@ -54,7 +53,8 @@ main(int argc, char *argv[])
       }
       
       print_status_message(status);	
-      fprintf(object, "\n");		
+      fprintf(object, "\n");			  
+      fflush(source);
 	}
 	return EXIT_SUCCESS;
 }
