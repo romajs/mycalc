@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include <parser.h>
+
 int T_FLAG;
 
 extern FILE *object;
