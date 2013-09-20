@@ -1,6 +1,6 @@
 CFLAGS=-I. -g
 
-relloc=lexer.o mycalc.o parser.o
+relloc=lexer.o parser.o mycalc.o args.o tests.o
 
 mycalc: $(relloc)
 	$(CC) -o $@ $^
