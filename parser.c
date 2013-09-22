@@ -4,10 +4,10 @@
 #define MAX_RECURSION_SIZE			0x100			
 double operand[MAX_STACK_SIZE]; 								// pilha de operandos (ID | CTE)
 int sp = -1;														
-int oper[MAX_STACK_SIZE][MAX_RECURSION_SIZE];		// pilha de operadores
+int oper[MAX_RECURSION_SIZE][MAX_STACK_SIZE];		// pilha de operadores
 int opsp = -1;
 int can_oper = 0;																// permite a execução de operações
-int E_lvl = -1, T_lvl = -1, F_lvl = -1; 				// contadores de recursão
+int E_lvl = -1, T_lvl = -1, F_lvl = -1, A_lvl = -1;				// contadores de recursão
 
 #define	MAX_SYM_TAB				1024							
 #define	MAX_ID_LEN				  32 									// obs: já definido em tokens.h
@@ -30,8 +30,20 @@ double calc(double x, double y, int op) {
   return result;
 }
 
-// busca uma variável na tabela de símbolos e retorna seu valor
+// busca uma variável na tabela de símbolos e retorna sua posição
+// caso não existe, então define
 double recall(char const *variable) {
+  int i;
+  for(i = 0; i < nextentry; i++) {
+		if(strcmp(SYMTAB[i], variable) == 0)
+			return i;
+	}
+  strcpy(SYMTAB[++nextentry], variable); // adiciona a variável em SYMTAB
+  return i;
+}
+
+// busca uma variável na tabela de símbolos e retorna seu valor
+double getvalue(char const *variable) {
   int i;
   for(i = 0; i < nextentry; i++) {
 		if(strcmp(SYMTAB[i], variable) == 0)
@@ -40,24 +52,22 @@ double recall(char const *variable) {
   exit(ID_NOT_DECLARED);
 }
 
+// funcão que inverte o sinal no topo da pilha
 double revert_signal() {
 	operand[sp] = -operand[sp];
   fprintf(debug, "(revert) operand[%d] = %.2f\n", sp, operand[sp]);	
 }
 
+// função que empilha um 'operando' na pilha de operandos
 void push_operand(double value) {
 	operand[++sp] = value;
 	fprintf(debug, "(push) operand[%d] = %.2f\n", sp, operand[sp]);	
 }
 
+// função que empilha um 'operador' na pilha de operadores
 void push_oper(token_t token) {
 	oper[E_lvl][++opsp] = token;
 	fprintf(debug, "(push) oper[%d] = %c\n", opsp, oper[E_lvl][opsp]);	
-}
-
-token_t pop_oper() {
-	fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[E_lvl][opsp]);	
-	return oper[E_lvl][opsp--];
 }
 
 // função que verifica se é possível operar no momento
@@ -68,13 +78,13 @@ should_oper() {
 	return oper[E_lvl][opsp]  && !(lookahead == '*' || lookahead == '/');
 }
 
-// função que executa as operações da pilha, desde que possa operar
+// função que executa as operações da pilha (desde que possa operar)
 double exec_oper() {
   if(opsp > - 1 && oper[E_lvl][opsp]) { // verifica se há operadores da pilha
 	
 		if(can_oper) { // se puder operar
 			do {			
-				fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
+				fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[E_lvl][opsp]);	
 				operand[--sp] = calc(operand[sp], operand[sp+1], oper[E_lvl][opsp--]);
 				fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
 			} while(can_oper = should_oper());	// enquanto puder operar
@@ -82,20 +92,27 @@ double exec_oper() {
   }
   return operand[sp]; // retorna o operando calculado (popado)
 }
+
+/* ADAPTADO PARA EBNF (em último)
+ * 
+ * mycalc -> [attr] expr
+ *
+ * attr -> ID '='
+ */
+
 /*
  * LL(1) expression grammar
  *
  * EBNF:
  *
- * expr -> [-] term { [+|-] term }
  *
+ * expr -> [attr] [-] term { [+|-] term }
  *
- *
- *                  --(+|-)--
- *        -(-)-     |       |
- *        |   |     |       |
- *        |   v     v       |
- * (E)------------>(T)--------->(_E)
+ *                         --(+|-)--
+ *        -(A)-   -(-)-    |       |
+ *        |   |   |   |    |       |
+ *        v   |   v   |    v       |
+ * (E)------------------->(T)--------->(_E)
  *
  * 
  * term -> fact { [*|/] fact }
@@ -106,23 +123,47 @@ double exec_oper() {
  * (T)------->(F)--------->(_T)
  * 
  * 
- * fact -> ID | NUM | '('expr')'
+ * fact -> ID ['=' expr] | NUM | '('expr')'
  *
- * (F)---------------> (ID) -------------\
- *  | \                                  v
- *  |  -------------> (NUM) ----------->(_F)
- *  |                                    ^
- *  \------> '(' ----> (E) ----> ')' ----/
+ *                        /-----(A)-----\
+ *                       /               \
+ * (F)---------------> (ID) --------------\
+ *  | \                                    \
+ *  |  \------------> (NUM) ------------->(_F)
+ *  |                                      /
+ *   \-----> '(' ----> (E) ----> ')' -----/
+ * 
+ *
+ * (A)------>(ID)------>'='------>(_A)
  *
  */
 int expr(void)
 {
+  int value;
   int chs = 0; // flag de inversão de sinal
-	E_lvl = -1, T_lvl = -1, F_lvl = -1;
+  int attr = -1; // posição da atribuição (se existir)
+	E_lvl = -1, T_lvl = -1, F_lvl = -1, A_lvl = -1;
 	sp = -1, opsp = -1;
+  
+  A: fprintf(debug, "A: %d\n", ++A_lvl);
+  
+  if(lookahead == ID) {
+    char temp[MAX_ID_LEN]; strcpy(temp, lexeme); // salva temporariamente o lexeme
+    match(ID);   
+    if(lookahead == '=') { // atribuição   
+      fprintf(debug, "\"%s\" foi adicionado a SYMTAB.\n", temp);    
+      match('=');
+      attr = recall(temp);
+      // acc ainda não tem valor (acc = 0) 
+    } else {
+      unmatch(ID, temp);
+    }
+  }
+    
+  _A: fprintf(debug, "A: %d\n", --A_lvl);
 	
   E: fprintf(debug, "E: %d\n", ++E_lvl);
-	
+  
 	can_oper = 0;
 	
   if(lookahead == '-') { // inversão de sinal
@@ -136,8 +177,8 @@ int expr(void)
   F: fprintf(debug, "F: %d\n", ++F_lvl);
   
   if(lookahead == ID) {
-    push_operand(recall(lexeme)); // empilha o valor da variável
-    match(ID);
+    push_operand(getvalue(lexeme)); // empilha o valor da variável
+    match(ID);    
   } else if(lookahead == NUM) {
     push_operand(atof(lexeme)); // empilha o valor da constante
     match(NUM);
@@ -185,16 +226,13 @@ int expr(void)
   
   match(EOF); 
 	
-	fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	 
+	fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);
+  
+  value = operand[sp--];
+  
+  if(attr > -1) {
+    acc[attr] = value;
+  }
 	
-  return operand[sp--];
-}
-
-int attr(void) {
-  match(ID);
-  strcpy(SYMTAB[nextentry], lexeme);
-  match('=');
-  acc[nextentry] = atof(lexeme);
-  match(NUM);
-  nextentry++;
+  return value;
 }

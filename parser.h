@@ -41,6 +41,8 @@ void fact(void);
 
 extern void match(token_t);
 
+void unmatch(token_t, const char*);
+
 extern FILE *object;
 
 extern FILE *debug;
