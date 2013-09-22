@@ -8,7 +8,7 @@ enum { // TOKENS
 
 enum { // RETURN STATUS (ERRORS)
 	OK = 0,
-   FAIL,
+  FAIL,
 	TOKEN_MISMATCH,
 };
 

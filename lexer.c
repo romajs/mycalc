@@ -71,7 +71,10 @@ token_t gettoken(FILE *tape)
   
 	lexeme[0] = getc(tape);
   lexeme[1] = 0;  
+  
+  fprintf(debug, "lookahead = \"%d\"/\"%c\"\n", lookahead, lookahead);
 	fprintf(debug, "lexeme = %s\n", lexeme);
+  
   return lexeme[0];
 }
 /**************************************************************************
@@ -80,11 +83,10 @@ token_t gettoken(FILE *tape)
 
 void match(token_t predicted)
 {
-  //fprintf(stdout, "\nlookahead: %d | predicted: %d\n", lookahead, predicted);
+  fprintf(debug, "lookahead = %d | predicted = %d\n", lookahead, predicted);
   if(lookahead == predicted) {
     if(lookahead != EOF)
       lookahead = gettoken(source);
-			fprintf(debug, "lookahead = %d \"%c\"\n", lookahead, lookahead);
   } else {
     exit(TOKEN_MISMATCH);
   }

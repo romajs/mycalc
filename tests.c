@@ -1,8 +1,12 @@
 #include <tests.h>
 
+int total = 0;
+int done = 0;
+
 test(const char* expression, int expected) {
-   fprintf(object, "Testing: \"%s\", expeced: \"%d\".\n", expression, expected);
-	 fprintf(source, "%s\n", expression);
+   fprintf(object, "Testing: \"%s\", expeced: \"%d\";\n", expression, expected); 
+   source = fopen("test.txt", "w+");
+   fprintf(source, "%s\n", expression);
    rewind(source);
       
    pid_t child;
@@ -10,21 +14,22 @@ test(const char* expression, int expected) {
    
    // copiado de 'mycalc.c' e adaptado
    if(!(child = fork())) { // inicia novo processo
-      //fprintf(object, "child: %d\n", child);		
+      //fprintf(object, "child: %d\n", child);	
+        
       
       /* get the first token to begin the parsing */
       lookahead = gettoken(source);
       
       /* call the grammar initial symbol */	
-      int value = expr();
-      fprintf(object, " = %d\n", value);
+      int value = 0;
+      value = expr();
+      fprintf(object, " -> Found = %d\n", value);
       
       if(value == expected) {
          exit(OK);
       } else {
          exit(FAIL);
       }
-      exit(OK);
    } else if (child == -1) {
       fprintf(object, "fork error.");
       exit(EXIT_FAILURE);
@@ -32,27 +37,36 @@ test(const char* expression, int expected) {
       //fprintf(object, "waiting for expr...\n");
       waitpid(child, &status, WUNTRACED);	// aguarda o filho terminar	
    }	 
-	   
-   fflush(source);
+
  
    if(WEXITSTATUS(status) == OK) {
+      done++;
       fprintf(object, "OK.\n");
    } else {
-      fprintf(object, "Failed.\n");
+      fprintf(object, "Failed. \"%d\"\n", WEXITSTATUS(status));
    }
+   total++;
+   fclose(source);
 }
 
 do_tests(void) {
 	fprintf(object, "Initiating tests...\n");	
-	source = fopen("test.txt", "wr"); //object;
 	test("1+2", 3);
 	test("1+2+3*4", 15);
 	test("1+2*3+4", 11);
 	test("1+2*3*4", 25);
 	test("1*2+3+4", 9);
-	test("1*2+3*4", 25);
-	test("1*2*3+4", 20);
-	test("1*2*3*4", 24) ;
-	//test("",);
-	source = stdin;
+	test("1*2+3*4", 14);
+	test("1*2*3+4", 10);
+	test("1*2*3*4", 24);
+  test("(2+3)*5", 25);
+  test("5*(2+3)", 25);
+  test("1-2*3*4+(1-1)", 23);
+  test("1-2*3*4*(2-2)", 1);
+  test("1-2", -1);
+  //test("", );
+  test("-(1+1)", -2);
+	source = stdin;  
+  double percent = (double) done / total * 100;
+  fprintf(object, "Total = %d, Done = %d, Failed = %d. (%.1f%%)\n", total, done, total - done, percent);
 }

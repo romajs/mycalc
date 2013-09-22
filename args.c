@@ -18,7 +18,7 @@ void match_args(int argc, char *argv[]) {
 	if(D_FLAG) {
     debug = object;
   } else {
-		debug = fopen("debug.txt", "w");
+		debug = fopen("debug.txt", "wr");
 	}
   if(T_FLAG) {
    do_tests();
