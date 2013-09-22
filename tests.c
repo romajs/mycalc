@@ -61,11 +61,12 @@ do_tests(void) {
 	test("1*2*3*4", 24);
   test("(2+3)*5", 25);
   test("5*(2+3)", 25);
-  test("1-2*3*4+(1-1)", 23);
+  test("1-2*3*4+(1-1)", -23);
   test("1-2*3*4*(2-2)", 1);
   test("1-2", -1);
-  //test("", );
+  test("2-1", 1);
   test("-(1+1)", -2);
+  test("5-(1+1)", 3);
 	source = stdin;  
   double percent = (double) done / total * 100;
   fprintf(object, "Total = %d, Done = %d, Failed = %d. (%.1f%%)\n", total, done, total - done, percent);

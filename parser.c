@@ -76,7 +76,7 @@ double exec_oper() {
 		if(can_oper) { // se puder operar
 			do {			
 				fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[opsp]);	
-				operand[--sp] = calc(operand[sp+1], operand[sp], oper[E_lvl][opsp--]);
+				operand[--sp] = calc(operand[sp], operand[sp+1], oper[E_lvl][opsp--]);
 				fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
 			} while(can_oper = should_oper());	// enquanto puder operar
 		} 
