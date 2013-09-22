@@ -10,6 +10,7 @@ enum { // RETURN STATUS (ERRORS)
 	OK = 0,
   FAIL,
 	TOKEN_MISMATCH,
+  ID_NOT_DECLARED,
 };
 
 #define         MAX_ID_LEN      32

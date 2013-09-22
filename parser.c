@@ -37,8 +37,7 @@ double recall(char const *variable) {
 		if(strcmp(SYMTAB[i], variable) == 0)
 			return acc[i];
 	}
-  strcpy(SYMTAB[nextentry++], variable);
-  return acc[i];
+  exit(ID_NOT_DECLARED);
 }
 
 double revert_signal() {
@@ -83,7 +82,39 @@ double exec_oper() {
   }
   return operand[sp]; // retorna o operando calculado (popado)
 }
-
+/*
+ * LL(1) expression grammar
+ *
+ * EBNF:
+ *
+ * expr -> [-] term { [+|-] term }
+ *
+ *
+ *
+ *                  --(+|-)--
+ *        -(-)-     |       |
+ *        |   |     |       |
+ *        |   v     v       |
+ * (E)------------>(T)--------->(_E)
+ *
+ * 
+ * term -> fact { [*|/] fact }
+ *
+ *             --(*|/)--
+ *             |       |
+ *             v       |
+ * (T)------->(F)--------->(_T)
+ * 
+ * 
+ * fact -> ID | NUM | '('expr')'
+ *
+ * (F)---------------> (ID) -------------\
+ *  | \                                  v
+ *  |  -------------> (NUM) ----------->(_F)
+ *  |                                    ^
+ *  \------> '(' ----> (E) ----> ')' ----/
+ *
+ */
 int expr(void)
 {
   int chs = 0; // flag de inversão de sinal
@@ -158,36 +189,12 @@ int expr(void)
 	
   return operand[sp--];
 }
-/*
- * LL(1) expression grammar
- *
- * EBNF:
- *
- * expr -> [-] term { [+|-] term }
- *
- *
- *
- *                  --(+|-)--
- *        -(-)-     |       |
- *        |   |     |       |
- *        |   v     v       |
- * (E)------------>(T)--------->(_E)
- *
- * 
- * term -> fact { [*|/] fact }
- *
- *             --(*|/)--
- *             |       |
- *             v       |
- * (T)------->(F)--------->(_T)
- * 
- * 
- * fact -> ID | NUM | '('expr')'
- *
- * (F)---------------> (ID) -------------\
- *  | \                                  v
- *  |  -------------> (NUM) ----------->(_F)
- *  |                                    ^
- *  \------> '(' ----> (E) ----> ')' ----/
- *
- */
+
+int attr(void) {
+  match(ID);
+  strcpy(SYMTAB[nextentry], lexeme);
+  match('=');
+  acc[nextentry] = atof(lexeme);
+  match(NUM);
+  nextentry++;
+}

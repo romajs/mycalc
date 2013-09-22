@@ -73,7 +73,7 @@ token_t gettoken(FILE *tape)
   lexeme[1] = 0;  
   
   fprintf(debug, "lookahead = \"%d\"/\"%c\"\n", lookahead, lookahead);
-	fprintf(debug, "lexeme = %s\n", lexeme);
+	fprintf(debug, "lexeme = \"%s\"\n", lexeme);
   
   return lexeme[0];
 }
