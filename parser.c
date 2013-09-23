@@ -74,7 +74,7 @@ void push_oper(token_t token) {
 }
 
 // função que verifica se é possível operar no momento
-should_oper() {
+should_oper(void) {
 	// pode operar desde que:
 	//	1 - enquanto houverem operadoes;
 	//	2 - enquanto o próximo operador não for '*' ou '/';
@@ -82,18 +82,14 @@ should_oper() {
 }
 
 // função que executa as operações da pilha (desde que possa operar)
-double exec_oper() {
-  if(opsp > - 1 && oper[E_lvl][opsp]) { // verifica se há operadores da pilha
-	
-		if(can_oper) { // se puder operar
-			do {			
-				fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[E_lvl][opsp]);	
-				operand[--sp] = calc(operand[sp], operand[sp+1], oper[E_lvl][opsp--]);
-				fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
-			} while(can_oper = should_oper());	// enquanto puder operar
-		} 
-  }
-  return operand[sp]; // retorna o operando calculado (popado)
+void exec_oper(void) {
+	if(opsp > - 1 && oper[E_lvl][opsp] && can_oper) { // se puder operar
+		do {			
+			fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[E_lvl][opsp]);	
+			operand[--sp] = calc(operand[sp], operand[sp+1], oper[E_lvl][opsp--]);
+			fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
+		} while(can_oper = should_oper());	// enquanto puder operar
+	} 
 }
 
 /*
