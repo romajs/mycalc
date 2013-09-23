@@ -7,8 +7,8 @@ token_t lookahead;
 char lexeme[MAX_ID_LEN];
 
 print_status_message(int status) {		
-	fprintf(debug, "returned status: %d\n", WEXITSTATUS(status));
-	switch(WEXITSTATUS(status)) {
+	fprintf(debug, "returned status: %d\n", status);
+	switch(status) {
 	case OK:
 		fprintf(object, "OK.");
 		break;
@@ -16,10 +16,10 @@ print_status_message(int status) {
 		fprintf(object, "Token mismatch \"%d\".", lookahead);
 		break;
   case ID_NOT_DECLARED:
-    fprintf(object, "Identifyer not declared. \"%s\".", lexeme);
+    fprintf(object, "Identifier not declared. \"%s\".", lexeme);
     break;
 	default:
-		fprintf(object, "Uncaught status \"%d\".", WEXITSTATUS(status));
+		fprintf(object, "Uncaught status \"%d\".", status);
 		break;
 	}
 	fprintf(object, "\n");
@@ -32,13 +32,12 @@ main(int argc, char *argv[])
    
    match_args(argc, argv);
     
-	while(1) {			
-      fflush(source);
+	while(1) {	  
+      lookahead = -1;
+      lexeme[0] = 0;
+      //fflush(source);
       
-      pid_t child;
-      int status = -1; 
-      
-      if(!(child = fork())) { // inicia novo processo
+      //if(!(child = fork())) { // inicia novo processo
          //fprintf(object, "child: %d\n", child);		
          
          fprintf(object, "%s", PROMPT);    	  
@@ -49,7 +48,7 @@ main(int argc, char *argv[])
          /* call the grammar initial symbol */				 
          fprintf(object, " = %d\n", expr());
      
-         exit(OK);
+      /*   exit(OK);
       } else if (child == -1) {
          fprintf(object, "fork error.\n");
          exit(EXIT_FAILURE);
@@ -57,8 +56,12 @@ main(int argc, char *argv[])
          //fprintf(object, "waiting for child \"%d\"...\n", child);
          waitpid(child, &status, WUNTRACED);	// aguarda o filho terminar	
       }
-      print_status_message(status);	
-      fprintf(object, "\n");	     
+      print_status_message(status);*/	
+      fprintf(object, "\n");	
 	}
 	return EXIT_SUCCESS;
+}
+
+exit_with_error(int status) {  
+  print_status_message(status);
 }

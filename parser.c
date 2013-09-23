@@ -30,11 +30,20 @@ double calc(double x, double y, int op) {
   return result;
 }
 
+void debug_symtab(void) {
+  fprintf(debug, "<SYMTAB size=\"%d\">\n", nextentry + 1);
+  int i;
+  for(i = 0; i <= nextentry; i++) {
+		fprintf(debug, " [%d] %s = %.2f\n", i, SYMTAB[i], acc[i]);
+	}
+  fprintf(debug, "</SYMTAB>\n");
+}
+
 // busca uma variável na tabela de símbolos e retorna sua posição
 // caso não existe, então define
 double recall(char const *variable) {
   int i;
-  for(i = 0; i < nextentry; i++) {
+  for(i = 0; i <= nextentry; i++) {
 		if(strcmp(SYMTAB[i], variable) == 0)
 			return i;
 	}
@@ -45,11 +54,12 @@ double recall(char const *variable) {
 // busca uma variável na tabela de símbolos e retorna seu valor
 double getvalue(char const *variable) {
   int i;
-  for(i = 0; i < nextentry; i++) {
+  for(i = 0; i <= nextentry; i++) {
 		if(strcmp(SYMTAB[i], variable) == 0)
 			return acc[i];
 	}
-  exit(ID_NOT_DECLARED);
+  exit_with_error(ID_NOT_DECLARED);
+  //exit(ID_NOT_DECLARED);
 }
 
 // funcão que inverte o sinal no topo da pilha
@@ -150,11 +160,11 @@ int expr(void)
   if(lookahead == ID) {
     char temp[MAX_ID_LEN]; strcpy(temp, lexeme); // salva temporariamente o lexeme
     match(ID);   
-    if(lookahead == '=') { // atribuição   
-      fprintf(debug, "\"%s\" foi adicionado a SYMTAB.\n", temp);    
+    if(lookahead == '=') { // atribuição      
       match('=');
-      attr = recall(temp);
-      // acc ainda não tem valor (acc = 0) 
+      attr = recall(temp);      
+      fprintf(debug, "\"%s\" foi adicionado a SYMTAB em %d.\n", temp, attr); 
+      // acc ainda não tem valor (acc = 0) mas não importa no momento
     } else {
       unmatch(ID, temp);
     }
@@ -177,12 +187,12 @@ int expr(void)
   F: fprintf(debug, "F: %d\n", ++F_lvl);
   
   if(lookahead == ID) {
-    push_operand(getvalue(lexeme)); // empilha o valor da variável
+    push_operand(getvalue(lexeme)); // empilha o valor da variável de SYMTAB
     match(ID);    
   } else if(lookahead == NUM) {
     push_operand(atof(lexeme)); // empilha o valor da constante
     match(NUM);
-  } else {
+  } else if(lookahead == '(') {
     match('(');
     goto E;
   }  
@@ -233,6 +243,6 @@ int expr(void)
   if(attr > -1) {
     acc[attr] = value;
   }
-	
+	debug_symtab();
   return value;
 }

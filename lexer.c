@@ -11,9 +11,11 @@ token_t isEOF(FILE *tape)
 {
 	token_t head;
 	if((head = getc(tape)) == '\n' || head == EOF) {
+      lexeme[0] = 0;
 		return EOF;
 	}
-	ungetc(head, tape); return 0;
+	ungetc(head, tape);
+  return 0;
 }
 
 token_t isID(FILE *tape)
@@ -88,19 +90,23 @@ void match(token_t predicted) {
     if(lookahead != EOF)
       lookahead = gettoken(source);
   } else {
-    exit(TOKEN_MISMATCH);
+    exit_with_error(TOKEN_MISMATCH);
   }
 }
 
 void unmatch(token_t previous, const char* temp) {
-  fprintf(debug, "(unmatch) previous = %d, lexeme = %s\n", previous, temp);
+  fprintf(debug, "(unmatch) previous = %d, lexeme = \"%s\"\n", lookahead, lexeme);
+  int i;
+  if(lookahead != EOF) {
+    fprintf(debug, "size(%s) = %u, ungetc: \"", lexeme, strlen(lexeme));
+    for(i = strlen(lexeme) - 1; i >= 0; i--) {
+      fprintf(debug, "%c", lexeme[i]);
+      ungetc(temp[i], source);
+    }    
+    fprintf(debug, "\"\n");  
+  } else {
+    ungetc('\n', source);
+  }
   lookahead = previous;
   strcpy(lexeme, temp);
-  int i;
-  fprintf(debug, "size = %u\n", strlen(temp));
-  for(i = strlen(temp) - 1; i >= 0; i--) {
-    fprintf(debug, "%c", temp[i]);
-    ungetc(temp[i], source);
-  } 
-  fprintf(debug, "\n");  
 }
