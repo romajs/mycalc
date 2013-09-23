@@ -50,7 +50,7 @@ double recall(char const *variable) {
   return i;
 }
 
-// busca uma variável na tabela de símbolos e retorna seu valor
+// busca uma variável na tabela de símbolos e retorna seu valor de acc
 double getvalue(char const *variable) {
   int i;
   for(i = 0; i <= nextentry; i++) {
@@ -59,12 +59,6 @@ double getvalue(char const *variable) {
 	}
   exit_with_error(ID_NOT_DECLARED);
   //exit(ID_NOT_DECLARED);
-}
-
-// funcão que inverte o sinal no topo da pilha
-double revert_signal() {
-	operand[sp] = -operand[sp];
-  fprintf(debug, "(revert) operand[%d] = %.2f\n", sp, operand[sp]);	
 }
 
 // função que empilha um 'operando' na pilha de operandos
@@ -139,10 +133,9 @@ double exec_oper() {
  * (A)------>(ID)------>'='------>(_A)
  *
  */
-int expr(void)
+double expr(void)
 {
-  int value;
-  int chs = 0; // flag de inversão de sinal
+  double value;
   int attr = -1; // posição da atribuição (se existir)
 	E_lvl = -1, T_lvl = -1, F_lvl = -1, A_lvl = -1;
 	sp = -1, opsp = -1;
@@ -169,9 +162,11 @@ int expr(void)
 	can_oper = 0;
 	
   if(lookahead == '-') { // inversão de sinal
-	  chs = 1;
-    fprintf(debug, "signal reversion activated!\n");
-    match('-');
+		match('-');
+    fprintf(debug, "(signal reversion) activated.\n");
+		push_operand(0);
+		push_oper('-');
+		can_oper = 1; // deve fazer esta operação o quanto antes (imediato)    
   }
   
   T: fprintf(debug, "T: %d\n", ++T_lvl);
@@ -201,13 +196,9 @@ int expr(void)
   }
   
   _T: fprintf(debug, "_T: %d\n", --T_lvl);
-  
-  if(chs) { // se houver sinal    
-    chs = 0;
-    revert_signal(); // inverte
-  }
- 
-  can_oper = 0; // operações de '+' ou '-' são 'agendadas'
+
+  // operações de '+' ou '-' são 'agendadas'
+	// Não precisa atribuir 'can_oper = 0;' pois já é feito automaticamente em exe_oper() 
  
   if(lookahead == '+' || lookahead == '-') {
     push_oper(lookahead);

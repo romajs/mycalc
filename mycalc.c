@@ -46,7 +46,7 @@ main(int argc, char *argv[])
          lookahead = gettoken(source);
          
          /* call the grammar initial symbol */				 
-         fprintf(object, " = %d\n", expr());
+         fprintf(object, " = %.2f\n", expr());
      
       /*   exit(OK);
       } else if (child == -1) {

@@ -12,8 +12,8 @@ extern token_t lookahead;
 
 extern token_t gettoken(FILE *);
 
-extern int expr(void);
+extern double expr(void);
 
-int test(const char*, int);
+int test(const char*, double);
 
 int do_tests(void);

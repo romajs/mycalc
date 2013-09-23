@@ -9,5 +9,5 @@ int exit_with_error(int);
 
 extern token_t gettoken(FILE *);
 
-extern int expr(void);
+extern double expr(void);
 

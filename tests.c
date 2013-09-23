@@ -3,8 +3,8 @@
 int total = 0;
 int done = 0;
 
-test(const char* expression, int expected) {
-   fprintf(object, "Testing: \"%s\", expeced: \"%d\";\n", expression, expected); 
+test(const char* expression, double expected) {
+   fprintf(object, "Testing: \"%s\", expeced: \"%.2f\";\n", expression, expected); 
    source = fopen("test.txt", "w+");
    fprintf(source, "%s\n", expression);
    rewind(source);
@@ -21,9 +21,9 @@ test(const char* expression, int expected) {
       lookahead = gettoken(source);
       
       /* call the grammar initial symbol */	
-      int value = 0;
+      double value = 0;
       value = expr();
-      fprintf(object, " -> Found = %d\n", value);
+      fprintf(object, " -> Found = %.2f\n", value);
       
       if(value == expected) {
          exit(OK);
@@ -61,12 +61,18 @@ do_tests(void) {
 	test("1*2*3*4", 24);
   test("(2+3)*5", 25);
   test("5*(2+3)", 25);
+	test("1/4", 0.25);
   test("1-2*3*4+(1-1)", -23);
   test("1-2*3*4*(2-2)", 1);
+	test("1-1", 0);
   test("1-2", -1);
   test("2-1", 1);
   test("-(1+1)", -2);
+	test("(-1+1)", 0);	
+	test("1-(1-1*(-1+1))", 0);
   test("5-(1+1)", 3);
+	test("5-((-1+1)+(1+2*3*4+(5/6)-7))", 5-((-1+1)+(1+2*3*4+(5.00/6.00)-7)));
+	//test("", 0.00);
 	source = stdin;  
   double percent = (double) done / total * 100;
   fprintf(object, "Total = %d, Done = %d, Failed = %d. (%.1f%%)\n", total, done, total - done, percent);
