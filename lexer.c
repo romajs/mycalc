@@ -63,22 +63,21 @@ token_t gettoken(FILE *tape)
 {
   token_t token;
   
-  if(token = isEOF(tape)) return token;
+  if(token = isEOF(tape)) goto END_TOKEN;
   
   skipspaces(tape);
   
-  if (token = isID(tape)) return token;
+  if (token = isID(tape)) goto END_TOKEN;
   
-  if (token = isNUM(tape)) return token;
+  if (token = isNUM(tape)) goto END_TOKEN;
   
   token = getc(tape);
 	lexeme[0] = token;
   lexeme[1] = 0;  
-  
-  fprintf(debug, "lookahead = %d, \"%c\"\n", token, token);
-	fprintf(debug, "lexeme = \"%s\"\n", lexeme);
-  
-  return lexeme[0];
+
+END_TOKEN:  
+  fprintf(debug, "lookahead = %d, \"%c\", lexeme = \"%s\"\n", token, token, lexeme);  
+  return token;
 }
 /**************************************************************************
  * parser-to-lexer interface
@@ -87,8 +86,11 @@ token_t gettoken(FILE *tape)
 void match(token_t predicted) {
   fprintf(debug, "lookahead = %d | predicted = %d\n", lookahead, predicted);
   if(lookahead == predicted) {
-    if(lookahead != EOF)
+    if(lookahead != EOF) {
       lookahead = gettoken(source);
+    } else {
+      fprintf(debug, "No more tokens in tape to get!\n");
+     }
   } else {
     exit_with_error(TOKEN_MISMATCH);
   }
@@ -101,7 +103,7 @@ void unmatch(token_t previous, const char* temp) {
     fprintf(debug, "size(%s) = %u, ungetc: \"", lexeme, strlen(lexeme));
     for(i = strlen(lexeme) - 1; i >= 0; i--) {
       fprintf(debug, "%c", lexeme[i]);
-      ungetc(temp[i], source);
+      ungetc(lexeme[i], source);
     }    
     fprintf(debug, "\"\n");  
   } else {
@@ -109,4 +111,5 @@ void unmatch(token_t previous, const char* temp) {
   }
   lookahead = previous;
   strcpy(lexeme, temp);
+  fprintf(debug, "lookahead = %d, lexeme = \"%s\"\n", lookahead, lexeme);
 }

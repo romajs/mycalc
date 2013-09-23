@@ -31,12 +31,11 @@ double calc(double x, double y, int op) {
 }
 
 void debug_symtab(void) {
-  fprintf(debug, "<SYMTAB size=\"%d\">\n", nextentry + 1);
+  fprintf(debug, "SYMTAB size=\"%d\"\n", nextentry + 1);
   int i;
   for(i = 0; i <= nextentry; i++) {
 		fprintf(debug, " [%d] %s = %.2f\n", i, SYMTAB[i], acc[i]);
 	}
-  fprintf(debug, "</SYMTAB>\n");
 }
 
 // busca uma variável na tabela de símbolos e retorna sua posição
@@ -103,13 +102,6 @@ double exec_oper() {
   return operand[sp]; // retorna o operando calculado (popado)
 }
 
-/* ADAPTADO PARA EBNF (em último)
- * 
- * mycalc -> [attr] expr
- *
- * attr -> ID '='
- */
-
 /*
  * LL(1) expression grammar
  *
@@ -135,14 +127,14 @@ double exec_oper() {
  * 
  * fact -> ID ['=' expr] | NUM | '('expr')'
  *
- *                        /-----(A)-----\
- *                       /               \
  * (F)---------------> (ID) --------------\
  *  | \                                    \
  *  |  \------------> (NUM) ------------->(_F)
  *  |                                      /
  *   \-----> '(' ----> (E) ----> ')' -----/
  * 
+ *
+ * attr -> ID '='
  *
  * (A)------>(ID)------>'='------>(_A)
  *
@@ -243,6 +235,8 @@ int expr(void)
   if(attr > -1) {
     acc[attr] = value;
   }
+  
 	debug_symtab();
+  
   return value;
 }
