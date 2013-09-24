@@ -11,6 +11,7 @@ enum { // RETURN STATUS (ERRORS)
   FAIL,
 	TOKEN_MISMATCH,
   ID_NOT_DECLARED,
+  STACK_MEM_OVERFLOW,
 };
 
 #define         MAX_ID_LEN      32

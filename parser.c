@@ -9,13 +9,13 @@ int opsp = -1;
 int can_oper = 0;																// permite a execução de operações
 int E_lvl = -1, T_lvl = -1, F_lvl = -1, A_lvl = -1;				// contadores de recursão
 
-#define	MAX_SYM_TAB				1024							
-#define	MAX_ID_LEN				  32 									// obs: já definido em tokens.h
+#define	MAX_SYM_TAB				0x1000							
+#define	MAX_ID_LEN				    32 									// obs: já definido em tokens.h
 char SYMTAB[MAX_SYM_TAB][MAX_ID_LEN]; 					// tabela de símbolos (armazenamento variávies)
 int nextentry = -1; 														// posição da tabela (próxima entrada)
 
-#define	MAX_MEM_SIZE		0x10000									//
-double acc[MAX_MEM_SIZE]; 											// pilha de valores da tabela de símbolos
+//#define	MAX_MEM_SIZE		0x1000				// Dúvida: Eraldo colocou isso ? mas não é ligada a SYMTAB?
+double acc[MAX_SYM_TAB]; 											// pilha de valores da tabela de símbolos
 
 // função que calcula o resultado entre duas variávies dado seu operador
 double calc(double x, double y, int op) { 
@@ -46,6 +46,9 @@ double recall(char const *variable) {
 		if(strcmp(SYMTAB[i], variable) == 0)
 			return i;
 	}
+  if(nextentry + 1 > MAX_SYM_TAB) {
+    exit_with_error(STACK_MEM_OVERFLOW);
+  }  
   strcpy(SYMTAB[++nextentry], variable); // adiciona a variável em SYMTAB
   return i;
 }
@@ -103,7 +106,7 @@ void exec_oper(void) {
  *                         --(+|-)--
  *        -(A)-   -(-)-    |       |
  *        |   |   |   |    |       |
- *        v   |   v   |    v       |
+ *        |   v   v   |    v       |
  * (E)------------------->(T)--------->(_E)
  *
  * 
@@ -138,6 +141,7 @@ double expr(void)
   
   A: fprintf(debug, "A: %d\n", ++A_lvl);
   
+  // OBS: por enquanto suporta atribuição única (por vez)
   if(lookahead == ID) {
     char temp[MAX_ID_LEN]; strcpy(temp, lexeme); // salva temporariamente o lexeme
     match(ID);   
