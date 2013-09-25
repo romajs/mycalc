@@ -2,11 +2,45 @@
 
 FILE *source, *object, *debug;
 
-token_t lookahead;
-
-char lexeme[MAX_ID_LEN];
-
 int error = 0;
+
+main(int argc, char *argv[])
+{  
+  source = stdin;        
+  object = stdout;
+
+  match_args(argc, argv);
+    
+	while(1) {	
+		fprintf(object, "%s", PROMPT);  
+		double value;				
+		if(mycalc(&value)) {
+			fprintf(object, " = %.2f\n", value);
+		}
+	}
+	return EXIT_SUCCESS;
+}
+
+mycalc(double *value) {  	  
+  
+	/* cleaning everything before start */
+	error = 0;	
+	lookahead = -1;
+	lexeme[0] = 0; 
+	fflush(source); // não adianta muito, mas...
+	
+	/* get the first token to begin the parsing */
+	lookahead = gettoken(source);
+
+	/* skips blank feed line */ 
+	if(lookahead == EOF) goto MYCALC_EXIT;
+
+	/* call the grammar initial symbol */
+	*value = expr();
+MYCALC_EXIT:
+	//fprintf(object, "\n");	
+	return !error;
+}
 
 print_status_message(int status) {		
 	fprintf(debug, "returned status: %d\n", status);
@@ -28,52 +62,6 @@ print_status_message(int status) {
 		break;
 	}
   fprintf(object, "Lexeme = \"%s\", lookahead = \"%d\".\n", lexeme, lookahead);
-}
-
-main(int argc, char *argv[])
-{  
-  source = stdin;        
-  object = stdout;
-
-  match_args(argc, argv);
-    
-	while(1) {	
-    fflush(source);
-    error = 0;
-    lookahead = -1;
-    lexeme[0] = 0;
-    //if(!(child = fork())) { // inicia novo processo
-       //fprintf(object, "child: %d\n", child);		
-       
-       fprintf(object, "%s", PROMPT);    	  
-    
-       /* get the first token to begin the parsing */
-       lookahead = gettoken(source);
-
-       /* skips blank feed line */ 
-       if(lookahead == EOF) {
-         fprintf(object, "\n");
-         continue;
-       }
-       
-       /* call the grammar initial symbol */
-       double value = expr();
-       if(!error) {
-        fprintf(object, " = %.2f\n", value);
-       }
-   
-    /*   exit(OK);
-    } else if (child == -1) {
-       fprintf(object, "fork error.\n");
-       exit(EXIT_FAILURE);
-    } else {			
-       //fprintf(object, "waiting for child \"%d\"...\n", child);
-       waitpid(child, &status, WUNTRACED);	// aguarda o filho terminar	
-    }
-    print_status_message(status);*/	
-    fprintf(object, "\n");	
-	}
-	return EXIT_SUCCESS;
 }
 
 exit_with_error(int status) {  

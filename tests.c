@@ -4,35 +4,25 @@ int total = 0;
 int done = 0;
 
 test(const char* expression, double expected) {
-   fprintf(object, "Testing: \"%s\", expeced: \"%.2f\";\n", expression, expected); 
-   source = fopen("test.txt", "w+");
-   fprintf(source, "%s\n", expression);
-   rewind(source);
-
-    error = 0;
-    lookahead = -1;
-    lexeme[0] = 0;
-    //if(!(child = fork())) { // inicia novo processo
-       //fprintf(object, "child: %d\n", child);			  
-    
-       /* get the first token to begin the parsing */
-       lookahead = gettoken(source);
-       
-       /* call the grammar initial symbol */
-       double value = expr();
-		fprintf(object, " = %.2f\n", value);
-       if(!error && value == expected) {        
-	printf("OK.\n" );
-	done++;	
-       } else {
-	printf("Failed.\n" );
+	fprintf(object, "[Testing]: \"%s\", expeced: \"%.2f\";\n", expression, expected); 
+	source = fopen("test.txt", "w+");
+	fprintf(source, "%s\n", expression);
+	rewind(source);
+	double value;  
+  if(mycalc(&value) && value == expected) {        
+		fprintf(object, "OK!\n" );
+		done++;	
+	} else {
+		fprintf(object, "FAILED! Found = \"%.2f\";\n", value); 
 	}
-   	total++;
-   	fclose(source);
+	total++;
+	fclose(source);
 }
 
-do_tests(void) {
-	fprintf(object, "Initiating tests...\n");	
+tests(void) {
+	fprintf(object, "Initiating tests...\n");
+	total = 0;
+	done = 0;	
 	test("1+2", 3);
 	test("1+2+3*4", 15);
 	test("1+2*3+4", 11);

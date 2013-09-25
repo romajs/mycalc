@@ -1,5 +1,9 @@
 #include <lexer.h>
 
+token_t lookahead;
+
+char lexeme[MAX_ID_LEN];
+
 void skipspaces(FILE *tape)
 {
   token_t head;

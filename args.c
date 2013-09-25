@@ -1,6 +1,7 @@
 #include <args.h>
 
 int D_FLAG;
+int T_FLAG;
 
 void match_args(int argc, char *argv[]) {
   int i; // manipulação de parâmetros
@@ -21,6 +22,6 @@ void match_args(int argc, char *argv[]) {
 		debug = fopen("debug.txt", "w+");
 	}
   if(T_FLAG) {
-   do_tests();
+   tests();
   }
 }

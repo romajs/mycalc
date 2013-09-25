@@ -5,9 +5,7 @@
 
 #define PROMPT ">"
 
-int exit_with_error(int);
-
+extern token_t lookahead;
+extern char lexeme[];
 extern token_t gettoken(FILE *);
-
 extern double expr(void);
-
