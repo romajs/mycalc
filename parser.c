@@ -137,7 +137,7 @@ double expr(void)
   double value;
   int attr = -1; // posição da atribuição (se existir)
 	E_lvl = -1, T_lvl = -1, F_lvl = -1, A_lvl = -1;
-	sp = -1, opsp = -1;
+	sp = -1, opsp = -1;	
   
   A: fprintf(debug, "A: %d\n", ++A_lvl);
   

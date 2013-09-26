@@ -22,20 +22,24 @@ main(int argc, char *argv[])
 }
 
 mycalc(double *value) {  	  
-  
-	/* cleaning everything before start */
+  	
+	// set no errors	
 	error = 0;	
-	lookahead = -1;
-	lexeme[0] = 0; 
+	
+	// clear parser before start 
+	memset(&oper[0], 0, sizeof(oper));
+	memset(&operand[0], 0, sizeof(operand));
+	lookahead = EOF;
+	lexeme[0] = 0;
 	fflush(source); // não adianta muito, mas...
 	
-	/* get the first token to begin the parsing */
+	// get the first token to begin the parsing
 	lookahead = gettoken(source);
 
-	/* skips blank feed line */ 
+	// skips blank feed line
 	if(lookahead == EOF) goto MYCALC_EXIT;
 
-	/* call the grammar initial symbol */
+	// call the grammar initial symbol
 	*value = expr();
 MYCALC_EXIT:
 	//fprintf(object, "\n");	
