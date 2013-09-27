@@ -46,15 +46,21 @@ token_t isNUM(FILE *tape)
   
   if(isdigit(head = getc(tape))) {
     int i = 0;
-    if(head == '0') {
-      lexeme[0] = head;
-      lexeme[1] = 0;
-      return NUM;
-    }
     lexeme[i++] = head;
     while(isdigit(head = getc(tape))){
-      if(i + 1 < MAX_DEC_LEN) lexeme[i++] = head;
+      if(i + 1 < MAX_INT_DIG)
+				lexeme[i++] = head;		
     }
+		if(head == '.') {
+			lexeme[i++] = '.';
+			while(isdigit(head = getc(tape))){
+				if(i + 1 < MAX_PRC_DIG) {
+					lexeme[i++] = head;
+				} else {
+					exit_with_error(MAX_DIG_OVERFLOW);
+				}
+			}
+		}
     lexeme[i] = 0;
     ungetc(head,tape);
     return NUM;

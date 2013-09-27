@@ -137,7 +137,11 @@ double expr(void)
   double value;
   int attr = -1; // posição da atribuição (se existir)
 	E_lvl = -1, T_lvl = -1, F_lvl = -1, A_lvl = -1;
-	sp = -1, opsp = -1;	
+	sp = -1, opsp = -1;
+
+	// limpeza das pilhas
+	memset(&oper[0], 0, sizeof(oper));
+	memset(&operand[0], 0, sizeof(operand));	
   
   A: fprintf(debug, "A: %d\n", ++A_lvl);
   

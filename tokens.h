@@ -8,13 +8,15 @@ enum { // TOKENS
 
 enum { // RETURN STATUS (ERRORS)
 	OK = 0,
-  FAIL,
+	FAIL,
 	TOKEN_MISMATCH,
-  ID_NOT_DECLARED,
-  STACK_MEM_OVERFLOW,
+	ID_NOT_DECLARED,
+	STACK_MEM_OVERFLOW,
+	MAX_DIG_OVERFLOW,
 };
 
-#define         MAX_ID_LEN      32
-#define         MAX_DEC_LEN     10
+#define         MAX_ID_LEN      32		// Tamanho máximo dos identificadores
+#define         MAX_INT_DIG     10		// Número máximo de dígitos de um inteiro
+#define			MAX_PRC_DIG		17		// Número máximo de dígitos de precisão de ponto flutuante
 
 #endif // TOKENS_H

@@ -27,8 +27,6 @@ mycalc(double *value) {
 	error = 0;	
 	
 	// clear parser before start 
-	memset(&oper[0], 0, sizeof(oper));
-	memset(&operand[0], 0, sizeof(operand));
 	lookahead = EOF;
 	lexeme[0] = 0;
 	fflush(source); // não adianta muito, mas...
@@ -56,10 +54,13 @@ print_status_message(int status) {
 		fprintf(object, "Token mismatch.\n");
 		break;
   case ID_NOT_DECLARED:
-    fprintf(object, "ID not declared.\n");
+    fprintf(object, "Undeclared ID.\n");
     break;
   case STACK_MEM_OVERFLOW:
     fprintf(object, "Stack memory overflow.\n");
+    break;
+	case MAX_DIG_OVERFLOW:
+    fprintf(object, "Maximum numeric digits exceeded.\n");
     break;
 	default:
 		fprintf(object, "Uncaught status \"%d\".\n", status);
