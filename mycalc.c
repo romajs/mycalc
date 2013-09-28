@@ -1,6 +1,6 @@
 #include <mycalc.h>
 
-FILE *source, *object, *debug;
+FILE *source, *object;
 
 int error; // flag de erro
 
@@ -9,6 +9,8 @@ main(int argc, char *argv[]) {
   // define padrões de entrada e saída (output/input)
   source = stdin;        
   object = stdout;
+  
+  nextentry = -1;
 
   // consome os argumentos de mycalc (se existirem)
   match_args(argc, argv); 
@@ -45,6 +47,10 @@ mycalc(double *value) {
 
 	// call the grammar initial symbol
 	*value = expr();
+    
+  // debug symtab (if in debug mode)
+	debug_symtab(&SYMTAB, &acc, nextentry + 1);
+  
 MYCALC_EXIT:
 	//fprintf(object, "\n");	
 	return !error;
@@ -52,7 +58,7 @@ MYCALC_EXIT:
 
 // função que exibe a mensagem referente ao status retornado
 void print_status_message(int status) {		
-	fprintf(debug, "returned status: %d\n", status);
+	debug( "returned status: %d\n", status);
 	switch(status) {
 	case OK:
 		fprintf(object, "OK.\n");

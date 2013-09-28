@@ -4,6 +4,32 @@
 #include <mytype.h>
 #include <tokens.h>
 
+#ifndef PARSER_H
+#define PARSER_H
+
+// contadores de recursão
+int E_lvl, T_lvl, F_lvl, A_lvl;				
+
+// pilha de operandos (constantes numéricas apenas)	
+double operand[MAX_STACK_SIZE]; 								
+int sp;
+
+// matriz de operadores (pilha de pilhas)
+// pilha de nível de recursão com subpilhas de operadores
+int oper[MAX_RECURSION_SIZE][MAX_STACK_SIZE];
+int opsp;
+
+// flag de permissão para execução de operações
+int can_oper;														
+
+// tabela de símbolos, armazenamento dos "lexemas" das variávies
+char SYMTAB[MAX_SYM_TAB][MAX_ID_LEN]; 		
+// pilha de valores referente a tabela de símbolos
+double acc[MAX_SYM_TAB]; 				
+int nextentry;
+
+#endif // PARSER_H
+
 /*
  * LL(1) expression grammar
  *
@@ -41,11 +67,11 @@ void fact(void);
 
 extern void match(token_t);
 
-void unmatch(token_t, const char*);
+extern void unmatch(token_t, const char*);
 
 extern FILE *object;
 
-extern FILE *debug;
+extern void debug(const char *, ...);
 
 extern token_t lookahead;
 

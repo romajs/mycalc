@@ -1,22 +1,5 @@
 #include <parser.h>
 
-#define	MAX_STACK_SIZE		0x1000			
-#define MAX_RECURSION_SIZE			0x100			
-double operand[MAX_STACK_SIZE]; 								// pilha de operandos (ID | CTE)
-int sp = -1;														
-int oper[MAX_RECURSION_SIZE][MAX_STACK_SIZE];		// pilha de operadores
-int opsp = -1;
-int can_oper = 0;																// permite a execução de operações
-int E_lvl = -1, T_lvl = -1, F_lvl = -1, A_lvl = -1;				// contadores de recursão
-
-#define	MAX_SYM_TAB				0x1000							
-#define	MAX_ID_LEN				    32 									// obs: já definido em tokens.h
-char SYMTAB[MAX_SYM_TAB][MAX_ID_LEN]; 					// tabela de símbolos (armazenamento variávies)
-int nextentry = -1; 														// posição da tabela (próxima entrada)
-
-//#define	MAX_MEM_SIZE		0x1000				// Dúvida: Eraldo colocou isso ? mas não é ligada a SYMTAB?
-double acc[MAX_SYM_TAB]; 											// pilha de valores da tabela de símbolos
-
 // função que calcula o resultado entre duas variávies dado seu operador
 double calc(double x, double y, int op) { 
   double result = 0.00;
@@ -26,16 +9,8 @@ double calc(double x, double y, int op) {
 		case '*': result = x * y; break;
 		case '/': result = x / y; break;
   }
-  fprintf(debug, "(calc) %.2f %c %.2f = %.2f\n", x, op, y, result);
+  debug( "(calc) %.2f %c %.2f = %.2f\n", x, op, y, result);
   return result;
-}
-
-void debug_symtab(void) {
-  fprintf(debug, "SYMTAB size=\"%d\"\n", nextentry + 1);
-  int i;
-  for(i = 0; i <= nextentry; i++) {
-		fprintf(debug, " [%d] %s = %.2f\n", i, SYMTAB[i], acc[i]);
-	}
 }
 
 // busca uma variável na tabela de símbolos e retorna sua posição
@@ -67,13 +42,13 @@ double getvalue(char const *variable) {
 // função que empilha um 'operando' na pilha de operandos
 void push_operand(double value) {
 	operand[++sp] = value;
-	fprintf(debug, "(push) operand[%d] = %.2f\n", sp, operand[sp]);	
+	debug( "(push) operand[%d] = %.2f\n", sp, operand[sp]);	
 }
 
 // função que empilha um 'operador' na pilha de operadores
 void push_oper(token_t token) {
 	oper[E_lvl][++opsp] = token;
-	fprintf(debug, "(push) oper[%d] = %c\n", opsp, oper[E_lvl][opsp]);	
+	debug( "(push) oper[%d] = %c\n", opsp, oper[E_lvl][opsp]);	
 }
 
 // função que verifica se é possível operar no momento
@@ -88,9 +63,9 @@ should_oper(void) {
 void exec_oper(void) {
 	if(opsp > - 1 && oper[E_lvl][opsp] && can_oper) { // se puder operar
 		do {			
-			fprintf(debug, "(pop) oper[%d] = %c\n", opsp, oper[E_lvl][opsp]);	
+			debug( "(pop) oper[%d] = %c\n", opsp, oper[E_lvl][opsp]);	
 			operand[--sp] = calc(operand[sp], operand[sp+1], oper[E_lvl][opsp--]);
-			fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
+			debug( "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
 		} while(can_oper = should_oper());	// enquanto puder operar
 	} 
 }
@@ -143,7 +118,7 @@ double expr(void)
 	memset(&oper[0], 0, sizeof(oper));
 	memset(&operand[0], 0, sizeof(operand));	
   
-  A: fprintf(debug, "A: %d\n", ++A_lvl);
+  A: debug( "A: %d\n", ++A_lvl);
   
   // OBS: por enquanto suporta atribuição única (por vez)
   if(lookahead == ID) {
@@ -152,30 +127,30 @@ double expr(void)
     if(lookahead == '=') { // atribuição      
       match('=');
       attr = recall(temp);      
-      fprintf(debug, "\"%s\" foi adicionado a SYMTAB em %d.\n", temp, attr); 
+      debug( "\"%s\" foi adicionado a SYMTAB em %d.\n", temp, attr); 
       // acc ainda não tem valor (acc = 0) mas não importa no momento
     } else {
       unmatch(ID, temp);
     }
   }
     
-  _A: fprintf(debug, "A: %d\n", --A_lvl);
+  _A: debug( "A: %d\n", --A_lvl);
 	
-  E: fprintf(debug, "E: %d\n", ++E_lvl);
+  E: debug( "E: %d\n", ++E_lvl);
   
 	can_oper = 0;
 	
   if(lookahead == '-') { // inversão de sinal
 		match('-');
-    fprintf(debug, "(signal reversion) activated.\n");
+    debug( "(signal reversion) activated.\n");
 		push_operand(0);
 		push_oper('-');
 		can_oper = 1; // deve fazer esta operação o quanto antes (imediato)    
   }
   
-  T: fprintf(debug, "T: %d\n", ++T_lvl);
+  T: debug( "T: %d\n", ++T_lvl);
   
-  F: fprintf(debug, "F: %d\n", ++F_lvl);
+  F: debug( "F: %d\n", ++F_lvl);
   
   if(lookahead == ID) {
     push_operand(getvalue(lexeme)); // empilha o valor da variável de SYMTAB
@@ -188,7 +163,7 @@ double expr(void)
     goto E;
   }  
   
-  _F: fprintf(debug, "_F: %d\n", --F_lvl);
+  _F: debug( "_F: %d\n", --F_lvl);
       
 	exec_oper(); // executa as operações mais 'voláteis' ('*' & '/')	 
   
@@ -199,7 +174,7 @@ double expr(void)
     goto F;
   }
   
-  _T: fprintf(debug, "_T: %d\n", --T_lvl);
+  _T: debug( "_T: %d\n", --T_lvl);
 
   // operações de '+' ou '-' são 'agendadas'
 	// Não precisa atribuir 'can_oper = 0;' pois já é feito automaticamente em exe_oper() 
@@ -214,7 +189,7 @@ double expr(void)
 	can_oper = 1;
 	exec_oper();	
   
-  _E: fprintf(debug, "_E: %d\n", --E_lvl);
+  _E: debug( "_E: %d\n", --E_lvl);
   
   if(E_lvl > -1) {
 	  match(')');
@@ -223,15 +198,13 @@ double expr(void)
   
   match(EOF); 
 	
-	fprintf(debug, "(pop) operand[%d] = %.2f\n", sp, operand[sp]);
+	debug( "(pop) operand[%d] = %.2f\n", sp, operand[sp]);
   
   value = operand[sp--];
   
   if(attr > -1) {
     acc[attr] = value;
   }
-  
-	debug_symtab();
   
   return value;
 }

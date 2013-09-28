@@ -5,9 +5,13 @@
 
 #define PROMPT ">"
 
+extern int E_lvl;	
+
 extern token_t lookahead;
 
 extern char lexeme[];
+
+extern void debug(const char *, ...);
 
 extern token_t gettoken(FILE *);
 

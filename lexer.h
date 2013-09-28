@@ -10,7 +10,7 @@ extern FILE *source;
 
 extern FILE *object;
 
-extern FILE *debug;
+extern void debug(const char *, ...);
 
 extern token_t lookahead;
 
