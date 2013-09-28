@@ -4,6 +4,7 @@ token_t lookahead;
 
 char lexeme[MAX_ID_LEN];
 
+// evita caracteres em branco (espaços)
 void skipspaces(FILE *tape)
 {
   token_t head;
@@ -11,6 +12,7 @@ void skipspaces(FILE *tape)
   ungetc(head, tape);
 }
 
+// fim de arquivo (EOF) ou ENTER ('\n')
 token_t isEOF(FILE *tape)
 {
 	token_t head;
@@ -22,6 +24,7 @@ token_t isEOF(FILE *tape)
   return 0;
 }
 
+// identificadores
 token_t isID(FILE *tape)
 {
   token_t head;
@@ -40,6 +43,7 @@ token_t isID(FILE *tape)
   return 0;
 }
 
+// contantes numéricas: integers ou ponto flutuante (double)
 token_t isNUM(FILE *tape)
 {
   token_t head;
@@ -69,6 +73,9 @@ token_t isNUM(FILE *tape)
   return 0;
 }
 
+// função que lê os caracteres da fita e tenta transformar em um símbolo da
+// gramática, para cada uma das funções acima (possíveis 'tokens')
+// caso nenhuma delas seja satisfeita apenas retorna o último caractere lido.
 token_t gettoken(FILE *tape)
 {
   token_t token;
@@ -93,6 +100,7 @@ END_TOKEN:
  * parser-to-lexer interface
  */
 
+// função que consome o 'token' atual e obtém o próximo 'token' da fita
 void match(token_t predicted) {
   fprintf(debug, "lookahead = %d | predicted = %d\n", lookahead, predicted);
   if(lookahead == predicted) {
@@ -106,6 +114,7 @@ void match(token_t predicted) {
   }
 }
 
+// função que devole o 'token' & 'lexeme' atual, e os redefine (volta ao anterior)
 void unmatch(token_t previous, const char* temp) {
   fprintf(debug, "(unmatch) previous = %d, lexeme = \"%s\"\n", lookahead, lexeme);
   int i;

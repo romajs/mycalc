@@ -2,25 +2,31 @@
 
 FILE *source, *object, *debug;
 
-int error = 0;
+int error; // flag de erro
 
-main(int argc, char *argv[])
-{  
+main(int argc, char *argv[]) {
+
+  // define padrões de entrada e saída (output/input)
   source = stdin;        
   object = stdout;
 
-  match_args(argc, argv);
+  // consome os argumentos de mycalc (se existirem)
+  match_args(argc, argv); 
     
+  // loop principal de execução (interpretador)  
 	while(1) {	
 		fprintf(object, "%s", PROMPT);  
 		double value;				
-		if(mycalc(&value)) {
+		if(mycalc(&value)) { // se não houver erro, exibe o valor
 			fprintf(object, " = %.2f\n", value);
 		}
 	}
 	return EXIT_SUCCESS;
 }
 
+// função principal do programa, retorno:
+// 1 - SUCESSO
+// 0 - FALHOU
 mycalc(double *value) {  	  
   	
 	// set no errors	
@@ -44,7 +50,8 @@ MYCALC_EXIT:
 	return !error;
 }
 
-print_status_message(int status) {		
+// função que exibe a mensagem referente ao status retornado
+void print_status_message(int status) {		
 	fprintf(debug, "returned status: %d\n", status);
 	switch(status) {
 	case OK:
@@ -69,7 +76,8 @@ print_status_message(int status) {
   fprintf(object, "Lexeme = \"%s\", lookahead = \"%d\".\n", lexeme, lookahead);
 }
 
-exit_with_error(int status) {  
+// função que pode ser chamada externamente para ativar o flag de erro
+void exit_with_error(int status) {  
   error = 1;
   print_status_message(status);
 }

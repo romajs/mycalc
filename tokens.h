@@ -6,7 +6,7 @@ enum { // TOKENS
 	NUM,
 };
 
-enum { // RETURN STATUS (ERRORS)
+enum { // MYCALC RETURN STATUS (ERRORS)
 	OK = 0,
 	FAIL,
 	TOKEN_MISMATCH,

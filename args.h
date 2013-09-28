@@ -1,4 +1,3 @@
-
 #include <tests.h>
 
 extern FILE *object;
