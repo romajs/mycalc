@@ -28,7 +28,12 @@ char SYMTAB[MAX_SYM_TAB][MAX_ID_LEN];
 double acc[MAX_SYM_TAB]; 				
 int nextentry;
 
+int attr[MAX_STACK_SIZE];
+int asp;
+
 #endif // PARSER_H
+
+void exec_attr(void);
 
 /*
  * LL(1) expression grammar

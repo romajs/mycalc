@@ -56,29 +56,51 @@ void push_oper(token_t token) {
 should_oper(void) {
 	// pode operar desde que:
 	//	1 - enquanto houverem operadoes;
-	//	2 - enquanto o próximo operador não for '*' ou '/';
-	return oper[E_lvl][opsp]  && !(lookahead == '*' || lookahead == '/');
+	//	2 - enquanto o próximo operador não for '*' ou '/' (mulop);
+	//  3 - não seja uma atribuição '=' (attr)
+  return oper[E_lvl][opsp] && !(lookahead == '*' || lookahead == '/') &&
+    oper[E_lvl][opsp] != '=';
 }
 
 // função que executa as operações da pilha (desde que possa operar)
 void exec_oper(void) {
-	if(opsp > - 1 && oper[E_lvl][opsp] && can_oper) { // se puder operar
-		do {			
-			if(oper[E_lvl][opsp] == '=') {
-        debug( "(pop) oper[%d] = \"%c\"\n", opsp, oper[E_lvl][opsp]);	
-        double value = operand[sp--];
-        int attr_pos = operand[sp];
-        debug("attr_pos = %d, lexeme = \"%s\".\n", attr_pos, SYMTAB[attr_pos]);
-        acc[attr_pos] = operand[sp] = value;
-        debug( "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
-        opsp--;
-      } else {
+  // deve operar quando:
+  // 1 - houver ao menos 1 operador, opsp = 0
+  // 2 - houver mais que 1 operando, sp = 1 , para poder calcular (sp0 + sp1)
+  // 3 - can_oper for verdadeiro (mulop | EOF | ')'
+	if(opsp > - 1 && oper[E_lvl][opsp] && can_oper && oper[E_lvl][opsp] != '=') { // se puder operar
+    do {			
+      /*if(oper[E_lvl][opsp] == '=') {
+        //exec_attr();
+      } else {*/
         debug( "(pop) oper[%d] = \"%c\"\n", opsp, oper[E_lvl][opsp]);	
         operand[--sp] = calc(operand[sp], operand[sp+1], oper[E_lvl][opsp--]);
         debug( "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
-      }
-    } while(can_oper = should_oper());	// enquanto puder operar
-	} 
+      //}
+    } while(can_oper = should_oper()); // enquanto puder operar
+  } 
+}
+
+// função responsável por realizar as atribuições
+void exec_attr(void) {
+  double value;
+  while(opsp > - 1 && oper[E_lvl][opsp] == '='
+    && (lookahead == ')' || lookahead == EOF)) {
+    debug( "(pop) oper[%d] = \"%c\"\n", opsp, oper[E_lvl][opsp--]);
+    
+    if(sp > -1) {
+      value = operand[sp--];
+      operand[sp] = value;
+    }
+    debug("value = %.2f\n.", value);
+    
+    int attr_pos = attr[asp--];
+    debug("attr_pos = %d, lexeme = \"%s\".\n", attr_pos, SYMTAB[attr_pos]);
+    debug( "(pop) attr[%d] = %.2f\n", asp, attr[asp]);
+    
+    acc[attr_pos] = value;
+    debug( "acc[%d] = %.2f\n", attr_pos, value);    
+  } 
 }
 
 /*
@@ -120,10 +142,11 @@ void exec_oper(void) {
  */
 double expr(void)
 { 
+  memset(&attr[0], 0, sizeof(attr));	
   memset(&oper[0], 0, sizeof(oper));
 	memset(&operand[0], 0, sizeof(operand));	
 	E_lvl = -1, T_lvl = -1, F_lvl = -1, A_lvl = -1;
-	sp = -1, opsp = -1;
+	sp = -1, opsp = -1, asp = -1;
   int can_attr = 0; // flag de atribuição
 	
   E: debug( "E: %d\n", ++E_lvl);
@@ -148,11 +171,12 @@ double expr(void)
   int attr_pos = -1;
   
   if(lookahead == ID) {
-    strcpy(variable, lexeme);
-    if((attr_pos = recall(variable) ) > -1) {
+    strcpy(variable, lexeme);    
+    match(ID);  
+    attr_pos = recall(variable);
+    if(lookahead != '=' && attr_pos > -1) {
       push_operand(getvalue(variable)); // empilha o valor da variável de SYMTAB
-    }
-    match(ID);    
+    }  
   } else if(lookahead == NUM) {
     push_operand(atof(lexeme)); // empilha o valor da constante
     match(NUM);
@@ -165,9 +189,12 @@ double expr(void)
     if(attr_pos == -1) {
       strcpy(SYMTAB[++nextentry], variable);
       attr_pos = nextentry;
+      debug( "(attrd) SYMTAB[%d] = \"%s\".\n", attr_pos, variable);  
+    } else {
+      debug( "(retvd) SYMTAB[%d] = \"%s\".\n", attr_pos, variable);  
     }
-    debug( "(attr) \"%s\" foi adicionado a SYMTAB em %d.\n", variable, attr_pos);  
-    push_operand(attr_pos);
+    attr[++asp] = attr_pos;
+    debug( "(push) attr[%d] = %d\n", asp, attr[asp]);	
     push_oper('=');       
     match('=');    
     goto A;
@@ -199,9 +226,12 @@ double expr(void)
     goto T;
   }
 	
-	// se chegou até É porque OU é fim de arquivo OU é ')' então deve operar o restante da pilha
+	// se chegou até É porque OU é fim de arquivo OU é ')', então:
+  // 1 - deve operar o restante da pilha
+  // 2 - deve realizar todas as astribuições do nível de recursão
 	can_oper = 1;
-	exec_oper();	
+	exec_oper();  
+  exec_attr();
   
   _E: debug( "_E: %d\n", --E_lvl);
   
