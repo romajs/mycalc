@@ -49,7 +49,8 @@ void push_operand(double value) {
 // função que empilha um 'operador' na pilha de operadores
 void push_oper(token_t token) {
 	oper[E_lvl][++opsp] = token;
-	debug( "(push) oper[%d] = \"%c\"\n", opsp, oper[E_lvl][opsp]);	
+	debug( "(push) oper[%d][%d] = \"%c\"\n", E_lvl, opsp, oper[E_lvl][opsp]);	
+  debug_oper(oper, E_lvl, opsp);
 }
 
 // função que verifica se é possível operar no momento
@@ -68,39 +69,41 @@ void exec_oper(void) {
   // 1 - houver ao menos 1 operador, opsp = 0
   // 2 - houver mais que 1 operando, sp = 1 , para poder calcular (sp0 + sp1)
   // 3 - can_oper for verdadeiro (mulop | EOF | ')'
-	if(opsp > - 1 && oper[E_lvl][opsp] && can_oper && oper[E_lvl][opsp] != '=') { // se puder operar
+  // 4 - operador não pode ser de atribuição
+	if(opsp > - 1 && sp > -1 && oper[E_lvl][opsp] && can_oper && oper[E_lvl][opsp] != '=') { // se puder operar
     do {			
-      /*if(oper[E_lvl][opsp] == '=') {
-        //exec_attr();
-      } else {*/
-        debug( "(pop) oper[%d] = \"%c\"\n", opsp, oper[E_lvl][opsp]);	
+        debug( "(pop) oper[%d][%d] = \"%c\"\n", E_lvl, opsp, oper[E_lvl][opsp]);	
         operand[--sp] = calc(operand[sp], operand[sp+1], oper[E_lvl][opsp--]);
         debug( "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
-      //}
     } while(can_oper = should_oper()); // enquanto puder operar
   } 
+  debug_oper(oper, E_lvl, opsp);
 }
 
 // função responsável por realizar as atribuições
 void exec_attr(void) {
   double value;
-  while(opsp > - 1 && oper[E_lvl][opsp] == '='
-    && (lookahead == ')' || lookahead == EOF)) {
-    debug( "(pop) oper[%d] = \"%c\"\n", opsp, oper[E_lvl][opsp--]);
+  // deve atribuir quando:
+  // 1 - houverem operadores '=' na pilha
+  while(opsp > -1 && oper[E_lvl][opsp] == '=') {
+    debug( "(pop) oper[%d][%d] = \"%c\"\n", E_lvl, opsp, oper[E_lvl][opsp--]);
     
-    if(sp > -1) {
-      value = operand[sp--];
-      operand[sp] = value;
-    }
-    debug("value = %.2f\n.", value);
+    if(sp > -1) { 
+      // obtém valor do operador no topo da fita
+      // obs: se não houverem mais operandos, mantém o anterior
+      value = operand[sp];
+    }    
+    debug("value = %.2f\n", value);
     
+    debug( "(pop) attr[%d] = %d\n", asp, attr[asp]);
     int attr_pos = attr[asp--];
+    
     debug("attr_pos = %d, lexeme = \"%s\".\n", attr_pos, SYMTAB[attr_pos]);
-    debug( "(pop) attr[%d] = %.2f\n", asp, attr[asp]);
     
     acc[attr_pos] = value;
     debug( "acc[%d] = %.2f\n", attr_pos, value);    
   } 
+  debug_oper(oper, E_lvl, opsp);
 }
 
 /*
@@ -111,8 +114,8 @@ void exec_attr(void) {
  *
  * expr -> {attr} [-] term { [+|-] term }
  *
- *                         --(+|-)--
- *        -(A)-   -(-)-    |       |
+ *        -----(A)-----    --(+|-)--
+ *        |   -(-)-   |    |       |
  *        |   |   |   |    |       |
  *        v   |   v   |    v       |
  * (E)------------------->(T)--------->(_E)
@@ -153,6 +156,10 @@ double expr(void)
   
 	can_oper = 0;
   can_attr = 1;
+  
+  A: debug( "A: %d\n", ++A_lvl);
+  char variable[MAX_ID_LEN];
+  int attr_pos = -1;
 	
   if(lookahead == '-') { // inversão de sinal
 		match('-');
@@ -165,11 +172,7 @@ double expr(void)
   T: debug( "T: %d\n", ++T_lvl);
   
   F: debug( "F: %d\n", ++F_lvl);  
-  
-  A: debug( "A: %d\n", ++A_lvl);
-  char variable[MAX_ID_LEN];
-  int attr_pos = -1;
-  
+
   if(lookahead == ID) {
     strcpy(variable, lexeme);    
     match(ID);  
@@ -228,7 +231,7 @@ double expr(void)
 	
 	// se chegou até É porque OU é fim de arquivo OU é ')', então:
   // 1 - deve operar o restante da pilha
-  // 2 - deve realizar todas as astribuições do nível de recursão
+  // 2 - deve realizar todas as astribuições do nível de recursão atual (E_lvl)
 	can_oper = 1;
 	exec_oper();  
   exec_attr();
@@ -241,6 +244,11 @@ double expr(void)
   }
   
   match(EOF); 
+  
+  // no caso de iniciar com '-' antes de 'attr'
+  if(opsp > -1 && oper[0][opsp] == '-') {
+    operand[sp] *= -1;
+  }
 	
 	debug( "(pop) operand[%d] = %.2f\n", sp, operand[sp]);
   return operand[sp--];

@@ -36,6 +36,7 @@ void tests(void) {
 
 	fprintf(object, "Initiating tests...\n");
   
+  test("a=2+(b=3)", 5);
 	test("1+2", 3);
 	test("1+2+3*4", 15);
 	test("1+2*3+4", 11);
@@ -75,7 +76,10 @@ void tests(void) {
   test("b", 1+2*3*4+(5.00/6.00)-7);
   test("c", 1+2*3*4+(5.00/6.00)-7);
   test("d", 5.00/6.00);
-  //test("-z=1", -1);
+  test("-w=1", -1);
+  test("x=-1", -1);
+  test("y=-(1)", -1);
+  test("-(z=1)", -1);
   //test("", 0.00);
   
   remove(SOURCE_FNAME); // deleta o arquivo temporário

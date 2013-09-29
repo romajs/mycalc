@@ -78,6 +78,8 @@ extern FILE *object;
 
 extern void debug(const char *, ...);
 
+extern void debug_oper(int [MAX_RECURSION_SIZE][MAX_STACK_SIZE], int , int );
+
 extern token_t lookahead;
 
 extern char lexeme[];
