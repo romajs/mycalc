@@ -24,8 +24,8 @@ double recall(char const *variable) {
   if(nextentry + 1 > MAX_SYM_TAB) {
     exit_with_error(STACK_MEM_OVERFLOW);
   }  
-  strcpy(SYMTAB[++nextentry], variable); // adiciona a variável em SYMTAB
-  return i;
+  //strcpy(SYMTAB[++nextentry], variable); // adiciona a variável em SYMTAB
+  return -1;
 }
 
 // busca uma variável na tabela de símbolos e retorna seu valor de acc
@@ -35,8 +35,9 @@ double getvalue(char const *variable) {
 		if(strcmp(SYMTAB[i], variable) == 0)
 			return acc[i];
 	}
-  exit_with_error(ID_NOT_DECLARED);
+  //exit_with_error(ID_NOT_DECLARED);
   //exit(ID_NOT_DECLARED);
+  return 0.00;
 }
 
 // função que empilha um 'operando' na pilha de operandos
@@ -48,7 +49,7 @@ void push_operand(double value) {
 // função que empilha um 'operador' na pilha de operadores
 void push_oper(token_t token) {
 	oper[E_lvl][++opsp] = token;
-	debug( "(push) oper[%d] = %c\n", opsp, oper[E_lvl][opsp]);	
+	debug( "(push) oper[%d] = \"%c\"\n", opsp, oper[E_lvl][opsp]);	
 }
 
 // função que verifica se é possível operar no momento
@@ -63,10 +64,20 @@ should_oper(void) {
 void exec_oper(void) {
 	if(opsp > - 1 && oper[E_lvl][opsp] && can_oper) { // se puder operar
 		do {			
-			debug( "(pop) oper[%d] = %c\n", opsp, oper[E_lvl][opsp]);	
-			operand[--sp] = calc(operand[sp], operand[sp+1], oper[E_lvl][opsp--]);
-			debug( "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
-		} while(can_oper = should_oper());	// enquanto puder operar
+			if(oper[E_lvl][opsp] == '=') {
+        debug( "(pop) oper[%d] = \"%c\"\n", opsp, oper[E_lvl][opsp]);	
+        double value = operand[sp--];
+        int attr_pos = operand[sp];
+        debug("attr_pos = %d, lexeme = \"%s\".\n", attr_pos, SYMTAB[attr_pos]);
+        acc[attr_pos] = operand[sp] = value;
+        debug( "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
+        opsp--;
+      } else {
+        debug( "(pop) oper[%d] = \"%c\"\n", opsp, oper[E_lvl][opsp]);	
+        operand[--sp] = calc(operand[sp], operand[sp+1], oper[E_lvl][opsp--]);
+        debug( "(pop) operand[%d] = %.2f\n", sp, operand[sp]);	
+      }
+    } while(can_oper = should_oper());	// enquanto puder operar
 	} 
 }
 
@@ -76,12 +87,12 @@ void exec_oper(void) {
  * EBNF:
  *
  *
- * expr -> [attr] [-] term { [+|-] term }
+ * expr -> {attr} [-] term { [+|-] term }
  *
  *                         --(+|-)--
  *        -(A)-   -(-)-    |       |
  *        |   |   |   |    |       |
- *        |   v   v   |    v       |
+ *        v   |   v   |    v       |
  * (E)------------------->(T)--------->(_E)
  *
  * 
@@ -108,37 +119,17 @@ void exec_oper(void) {
  *
  */
 double expr(void)
-{
-  double value;
-  int attr = -1; // posição da atribuição (se existir)
+{ 
+  memset(&oper[0], 0, sizeof(oper));
+	memset(&operand[0], 0, sizeof(operand));	
 	E_lvl = -1, T_lvl = -1, F_lvl = -1, A_lvl = -1;
 	sp = -1, opsp = -1;
-
-	// limpeza das pilhas
-	memset(&oper[0], 0, sizeof(oper));
-	memset(&operand[0], 0, sizeof(operand));	
-  
-  A: debug( "A: %d\n", ++A_lvl);
-  
-  // OBS: por enquanto suporta atribuição única (por vez)
-  if(lookahead == ID) {
-    char temp[MAX_ID_LEN]; strcpy(temp, lexeme); // salva temporariamente o lexeme
-    match(ID);   
-    if(lookahead == '=') { // atribuição      
-      match('=');
-      attr = recall(temp);      
-      debug( "\"%s\" foi adicionado a SYMTAB em %d.\n", temp, attr); 
-      // acc ainda não tem valor (acc = 0) mas não importa no momento
-    } else {
-      unmatch(ID, temp);
-    }
-  }
-    
-  _A: debug( "A: %d\n", --A_lvl);
+  int can_attr = 0; // flag de atribuição
 	
   E: debug( "E: %d\n", ++E_lvl);
   
 	can_oper = 0;
+  can_attr = 1;
 	
   if(lookahead == '-') { // inversão de sinal
 		match('-');
@@ -150,10 +141,17 @@ double expr(void)
   
   T: debug( "T: %d\n", ++T_lvl);
   
-  F: debug( "F: %d\n", ++F_lvl);
+  F: debug( "F: %d\n", ++F_lvl);  
+  
+  A: debug( "A: %d\n", ++A_lvl);
+  char variable[MAX_ID_LEN];
+  int attr_pos = -1;
   
   if(lookahead == ID) {
-    push_operand(getvalue(lexeme)); // empilha o valor da variável de SYMTAB
+    strcpy(variable, lexeme);
+    if((attr_pos = recall(variable) ) > -1) {
+      push_operand(getvalue(variable)); // empilha o valor da variável de SYMTAB
+    }
     match(ID);    
   } else if(lookahead == NUM) {
     push_operand(atof(lexeme)); // empilha o valor da constante
@@ -161,7 +159,23 @@ double expr(void)
   } else if(lookahead == '(') {
     match('(');
     goto E;
-  }  
+  }    
+  
+  if(lookahead == '=' && can_attr) { // atribuição
+    if(attr_pos == -1) {
+      strcpy(SYMTAB[++nextentry], variable);
+      attr_pos = nextentry;
+    }
+    debug( "(attr) \"%s\" foi adicionado a SYMTAB em %d.\n", variable, attr_pos);  
+    push_operand(attr_pos);
+    push_oper('=');       
+    match('=');    
+    goto A;
+  }
+    
+  _A: debug( "A: %d\n", --A_lvl);
+  
+  can_attr = 0;
   
   _F: debug( "_F: %d\n", --F_lvl);
       
@@ -199,12 +213,5 @@ double expr(void)
   match(EOF); 
 	
 	debug( "(pop) operand[%d] = %.2f\n", sp, operand[sp]);
-  
-  value = operand[sp--];
-  
-  if(attr > -1) {
-    acc[attr] = value;
-  }
-  
-  return value;
+  return operand[sp--];
 }

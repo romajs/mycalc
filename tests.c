@@ -58,7 +58,15 @@ void tests(void) {
   test("5-(1+1)", 3);
 	test("5-((-1+1)+(1+2*3*4+(5/6)-7))", 5-((-1+1)+(1+2*3*4+(5.00/6.00)-7)));
 	test("a=2.23", 2.23);
+  test("b=4.46", 4.46);
   test("b=a*2", 4.46);
+  test("c=d=7.27", 7.27);
+  test("c=a", 2.23);
+  test("a=b=c=999", 999);
+  test("a", 999);
+  test("b", 999);
+  test("c", 999);
+  test("d", 999);
   //test("", 0.00);
   
   remove(SOURCE_FNAME); // deleta o arquivo temporário
