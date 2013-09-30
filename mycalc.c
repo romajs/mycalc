@@ -11,6 +11,8 @@ main(int argc, char *argv[]) {
   object = stdout;
   
   nextentry = -1;
+  
+  fprintf(object, "Para maiores informacoes use: \"cat README.md\"\n");
 
   // consome os argumentos de mycalc (se existirem)
   match_args(argc, argv); 
