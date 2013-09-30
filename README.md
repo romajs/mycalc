@@ -1,5 +1,3 @@
-# MyCalc - Compiladores UNESP @ RC /2013
-
 @@@.....@@@..@@@..@@@....@@@@@.......@@@.....@@@..........@@@@@..  
 .@@@@.@@@@....@@..@@...@@@....@@....@@@@@.....@@........@@@....@@  
 .@@.@@@.@@.....@@@@...@@...........@@...@@....@@.......@@........  
@@ -7,35 +5,33 @@
 .@@.....@@......@@.....@@@....@@...@@...@@....@@...@@...@@@....@@  
 @@@@...@@@@....@@@@......@@@@@....@@@...@@@..@@@@@@@@.....@@@@@..  
 
-## Grupo 03
+### MyCalc - Compiladores UNESP @ RC /2013
+Professor: Eraldo Pereira Marinho
 
-André Cantelli  
-Daniel Felipe Lucas  
-José Romualdo dos Santos  
-Rodrigo Akio  
-Tulio Pereira  
+Repositório disponível em: https://github.com/romajs/mycalc
 
-## How-To:
+#### Grupo 03
+- André Cantelli  
+- Daniel Felipe Lucas  
+- José Romualdo dos Santos  
+- Rodrigo Akio  
+- Tulio Pereira  
 
-Para compilar utilize o comando `make` e depois execute com `./mycalc` em Unix ou `mycalc.exe` no Windows.  
+#### Como utilizar:
 
-Use a diretiva `-d` para acionar o modo de 'debug' ex: `./mycalc -d`.
+Para compilar utilize o comando `make` e depois execute com `./mycalc` em Unix ou `mycalc` no Windows.  
+Para sair do programa utilize as teclas `ctrl+c`.  
 
-ex:  
-> "> 5*5  
-E:  
-T:  
-F:  
-(push) operand[0] = 5.00  
-_F:  
-(push) oper[0] = *  
-F:  
-(push) operand[1] = 5.00  
-_F:  
-(pop) oper[0] = *  
-(pop)  operand[0] = 25.00  
-_T:  
-_E:  
- = 25  
-status: 0  
-OK."
+O programa aceita duas diretivas (argumentos):  
+- `-d` modo debug, todo os passos serão exibidos na saída padrão;
+- `-t` modo de testes, executa diversos testes pré-definidos no início do programa;
+
+#### Descrição dos Arquivos:  
+- args: manipulador de diretivas/argumentos;
+- debug: funções úteis para exibição de modo debug;
+- lexer: analisador léxico de mycalc;
+- mycalc: arquivo principal contendo função `main` e loop do interpretador;
+- mytype: arquivo definições de tipos próprios utilzados no programa;
+- parser: anasilar sintático e manipulações/operações de pilha;
+- tests: testes a serem executados no modo de testes;
+- tokens: definições de constantes e símbolos da gramática
