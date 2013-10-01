@@ -174,29 +174,38 @@ double expr(void)
 	F: debug( "F: %d\n", ++F_lvl);  
 
 	if(lookahead == ID) {
-		strcpy(variable, lexeme);    
+		strcpy(variable, lexeme); // faz uma cópia do lexema de 'ID' 
+		
 		match(ID);  
-		attr_pos = recall(variable);
-		if(lookahead != '=' && attr_pos > -1) {
-			push_operand(getvalue(variable)); // empilha o valor da variável de SYMTAB
-		}  
+		
+		attr_pos = recall(variable); // busca a posicação em SYMTAB caso exista, caso contrário = -1
+		
+		if(lookahead != '=') { // se não for declaração
+			if(attr_pos > -1) {
+				push_operand(getvalue(variable)); // deve empilhar o valor da variável de SYMTAB
+			} else {
+				exit_with_error(ID_NOT_DECLARED); // caso contrário, a 'ID' não foi declarada
+			}
+		}
 	} else if(lookahead == NUM) {
 		push_operand(atof(lexeme)); // empilha o valor da constante
 		match(NUM);
 	} else if(lookahead == '(') {
 		match('(');
 		goto E;
-	}    
+	} else { // se não for nenhum dos esperados acima, então não faz parte da gramática
+		exit_with_error(-1);
+	}	
 
 	if(lookahead == '=' && can_attr) { // atribuição
 		if(attr_pos == -1) {
-			strcpy(SYMTAB[++nextentry], variable);
+			strcpy(SYMTAB[++nextentry], variable); // insere em SYMTAB
 			attr_pos = nextentry;
 			debug( "(attrd) SYMTAB[%d] = \"%s\".\n", attr_pos, variable);  
 		} else {
 			debug( "(retvd) SYMTAB[%d] = \"%s\".\n", attr_pos, variable);  
 		}
-		attr[++asp] = attr_pos;
+		attr[++asp] = attr_pos; // empilha a posição da ID de SYMTAB em attr
 		debug( "(push) attr[%d] = %d\n", asp, attr[asp]);	
 		push_oper('=');       
 		match('=');    
