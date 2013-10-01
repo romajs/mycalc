@@ -17,6 +17,14 @@ Repositório disponível em: https://github.com/romajs/mycalc
 - Rodrigo Akio  
 - Tulio Pereira  
 
+#### Funcionalidades:
+- Semelhante a calculadora 'bc', realiza cálculos de expressões algébricas e retorna seu resultado
+- Realiza os cálculos do operador mais significativo para o menos significativo (for pós-fixada)
+- Suporte a inversão de sinal '-' de uma expressão
+- Suporte a múltiplas atribuições em uma mesma expresão
+- Loop de execução do analisador sintático
+- Informa sobre possíveis erros de análise, estouro de pilha, etc...
+
 #### Como utilizar:
 
 Para compilar utilize o comando `make` e depois execute com `./mycalc` em Unix ou `mycalc` no Windows.  
