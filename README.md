@@ -1,21 +1,10 @@
-@@@.....@@@..@@@..@@@....@@@@@.......@@@.....@@@..........@@@@@..  
-.@@@@.@@@@....@@..@@...@@@....@@....@@@@@.....@@........@@@....@@  
-.@@.@@@.@@.....@@@@...@@...........@@...@@....@@.......@@........  
-.@@.....@@......@@....@@...........@@@@@@@....@@.......@@........  
-.@@.....@@......@@.....@@@....@@...@@...@@....@@...@@...@@@....@@  
-@@@@...@@@@....@@@@......@@@@@....@@@...@@@..@@@@@@@@.....@@@@@..  
+MyCalc
+=====
+Compiladores UNESP @ RC /2013
 
-### MyCalc - Compiladores UNESP @ RC /2013
 Professor: Eraldo Pereira Marinho
 
 Repositório disponível em: https://github.com/romajs/mycalc
-
-#### Grupo 03
-- André Cantelli  
-- Daniel Felipe Lucas  
-- José Romualdo dos Santos  
-- Rodrigo Akio  
-- Tulio Pereira  
 
 #### Funcionalidades:
 - Semelhante a calculadora 'bc', realiza cálculos de expressões algébricas e retorna seu resultado
